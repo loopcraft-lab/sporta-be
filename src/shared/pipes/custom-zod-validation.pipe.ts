@@ -4,11 +4,14 @@ import { ZodError } from 'zod'
 
 const CustomZodValidationPipe: typeof ZodValidationPipe = createZodValidationPipe({
   createValidationException: (error: ZodError) => {
+    console.log()
     return new UnprocessableEntityException(
-      error.issues.map((issue) => ({
-        ...issue,
-        path: issue.path.join('.')
-      }))
+      error.issues.map((issue) => {
+        return {
+          ...issue,
+          path: issue.path.join('.')
+        }
+      })
     )
   }
 })
