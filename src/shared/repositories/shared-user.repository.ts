@@ -1,9 +1,9 @@
+import { SerializeAll } from '@/shared/decorators/serialize.decorator'
 import { PermissionType } from '@/shared/models/shared-permission.model'
 import { RoleType } from '@/shared/models/shared-role.model'
 import { UserType } from '@/shared/models/shared-user.model'
 import { PrismaService } from '@/shared/services/prisma.service'
 import { Injectable } from '@nestjs/common'
-import { Prisma } from '@prisma/client'
 
 type UserIncludeRolePermissionsType = UserType & {
   role: RoleType & { permissions: PermissionType[] }
@@ -12,6 +12,7 @@ type UserIncludeRolePermissionsType = UserType & {
 export type WhereUniqueUserType = { id: number } | { email: string }
 
 @Injectable()
+@SerializeAll()
 export class SharedUserRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
@@ -46,13 +47,13 @@ export class SharedUserRepository {
     }) as any
   }
 
-  update(where: { id: number }, data: Prisma.UserUpdateInput): Promise<UserType | null> {
+  update(where: { id: number }, data: Partial<UserType>): Promise<UserType> {
     return this.prismaService.user.update({
       where: {
         ...where,
         deletedAt: null
       },
-      data
+      data: data as any
     }) as any
   }
 }

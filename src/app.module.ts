@@ -17,10 +17,7 @@ import { SharedModule } from './shared/shared.module'
       provide: APP_PIPE,
       useClass: CustomZodValidationPipe
     },
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: ZodSerializerInterceptor
-    },
+    { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },
     {
       provide: APP_FILTER,
       useClass: HttpExceptionFilter
