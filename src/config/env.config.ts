@@ -30,7 +30,9 @@ const configSchema = z.object({
   //Mail:
   RESEND_API_KEY: z.string(),
   //otp:
-  OTP_EXPIRES_IN: z.string()
+  OTP_EXPIRES_IN: z.string(),
+  //redis:
+  REDIS_URL: z.string()
   // //AWS S3
   // S3_REGION: z.string(),
   // S3_ACCESS_KEY: z.string(),
