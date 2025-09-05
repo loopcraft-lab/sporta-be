@@ -32,7 +32,7 @@ export const RegisterResSchema = UserSchema.omit({
 
 export const VerificationCodeSchema = z.object({
   id: z.number(),
-  email: z.string().email(),
+  email: z.email(),
   code: z.string().length(6),
   type: z.enum([
     TypeOfVerificationCode.REGISTER,
@@ -118,7 +118,7 @@ export const GetAuthorizationUrlResSchema = z.object({
 
 export const ForgotPasswordBodySchema = z
   .object({
-    email: z.string().email(),
+    email: z.email(),
     code: z.string().length(6),
     newPassword: z.string().min(6).max(100),
     confirmNewPassword: z.string().min(6).max(100)
