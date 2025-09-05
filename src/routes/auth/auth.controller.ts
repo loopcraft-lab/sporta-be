@@ -3,9 +3,7 @@ import {
   LoginResDTO,
   LogoutBodyDTO,
   RefreshTokenBodyDTO,
-  RefreshTokenResDTO,
   RegisterBodyDTO,
-  RegisterResDTO,
   SendOTPBodyDTO
 } from '@/routes/auth/auth.dto'
 import { IsPublic } from '@/shared/decorators/auth.decorator'
@@ -38,7 +36,7 @@ export class AuthController {
 
   @Post('register')
   @IsPublic()
-  @ZodResponse({ type: RegisterResDTO })
+  @ZodResponse({ type: MessageResDTO })
   register(@Body() body: RegisterBodyDTO) {
     return this.authService.register(body)
   }
@@ -46,7 +44,7 @@ export class AuthController {
   @Post('refresh-token')
   @IsPublic()
   @HttpCode(HttpStatus.OK)
-  @ZodResponse({ type: RefreshTokenResDTO })
+  @ZodResponse({ type: MessageResDTO })
   refreshToken(@Body() body: RefreshTokenBodyDTO) {
     return this.authService.refreshToken({
       refreshToken: body.refreshToken

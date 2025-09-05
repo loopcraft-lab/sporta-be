@@ -4,13 +4,15 @@ import {
   RoleWithPermissionsType,
   UpdateRoleBodyType
 } from '@/routes/role/role.model'
-import { RoleMessage } from '@/shared/messages/role.message'
+import { SerializeAll } from '@/shared/decorators/serialize.decorator'
+import { ROLE_MESSAGE } from '@/shared/messages/role.message'
 import { PaginationQueryType } from '@/shared/models/request.model'
-import { RoleType } from '@/shared/models/shared-role.model'
+import { RolePermissionsType, RoleType } from '@/shared/models/shared-role.model'
 import { PrismaService } from '@/shared/services/prisma.service'
 import { Injectable } from '@nestjs/common'
 
 @Injectable()
+@SerializeAll()
 export class RoleRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
@@ -39,7 +41,7 @@ export class RoleRepository {
         limit: pagination.limit,
         totalPages: Math.ceil(totalItems / pagination.limit)
       },
-      message: RoleMessage.ROLES_RETRIEVED_SUCCESSFULLY
+      message: ROLE_MESSAGE.LIST_SUCCESS
     } as any
   }
 
@@ -82,7 +84,8 @@ export class RoleRepository {
     id: number
     updatedById: number
     data: UpdateRoleBodyType
-  }): Promise<RoleType> {
+  }): Promise<RolePermissionsType> {
+    // Kiểm tra nếu có bất cứ permissionId nào mà đã soft delete thì không cho phép cập nhật
     if (data.permissionIds.length > 0) {
       const permissions = await this.prismaService.permission.findMany({
         where: {

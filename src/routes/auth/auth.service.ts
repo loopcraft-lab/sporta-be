@@ -26,6 +26,7 @@ import {
   isUniqueConstraintPrismaError
 } from '@/shared/helper'
 import { AUTH_MESSAGE } from '@/shared/messages/auth.message'
+import { SharedRoleRepository } from '@/shared/repositories/shared-role.repository'
 import { SharedUserRepository } from '@/shared/repositories/shared-user.repository'
 import { EmailService } from '@/shared/services/email.service'
 import { HashingService } from '@/shared/services/hashing.service'
@@ -42,7 +43,7 @@ export class AuthService {
     private readonly authRepository: AuthRepository,
     private readonly emailService: EmailService,
     private readonly sharedUserRepository: SharedUserRepository,
-    // private readonly sharedRoleRepository: SharedRoleRepository,
+    private readonly sharedRoleRepository: SharedRoleRepository,
     private readonly hashingService: HashingService,
     private readonly tokenService: TokenService
   ) {}
@@ -149,7 +150,7 @@ export class AuthService {
       roleName: user.role.name
     })
     return {
-      ...tokens,
+      data: tokens,
       message: AUTH_MESSAGE.LOGIN_SUCCESS
     }
   }
@@ -157,21 +158,25 @@ export class AuthService {
   //register:
   async register(body: RegisterBodyType) {
     try {
+      let roleId: number
       await this.validateVerificationCode({
         email: body.email,
         type: TypeOfVerificationCode.REGISTER,
         code: body.code
       })
-      // const clientRoleId = await this.sharedRoleRepository.getClientRoleId()
-      const clientRoleId = 1
+      if (body.isOwner) {
+        roleId = await this.sharedRoleRepository.getOwnerRoleId()
+      } else {
+        roleId = await this.sharedRoleRepository.getClientRoleId()
+      }
       const hashedPassword = await this.hashingService.hash(body.password)
-      const [user] = await Promise.all([
+      await Promise.all([
         this.authRepository.createUser({
           email: body.email,
           name: body.name,
           phoneNumber: body.phoneNumber,
           password: hashedPassword,
-          roleId: clientRoleId
+          roleId
         }),
         this.authRepository.deleteVerificationCode({
           email_type: {
@@ -181,7 +186,6 @@ export class AuthService {
         })
       ])
       return {
-        ...user,
         message: AUTH_MESSAGE.REGISTER_SUCCESS
       }
     } catch (error) {
@@ -218,7 +222,7 @@ export class AuthService {
       const $tokens = this.generateTokens({ userId, roleId, roleName })
       const [, tokens] = await Promise.all([$deleteRefreshToken, $tokens])
       return {
-        ...tokens,
+        data: tokens,
         message: AUTH_MESSAGE.REFRESH_TOKEN_SUCCESS
       }
     } catch (error) {

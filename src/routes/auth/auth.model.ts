@@ -10,7 +10,8 @@ export const RegisterBodySchema = UserSchema.pick({
 })
   .extend({
     confirmPassword: z.string().min(6).max(100),
-    code: z.string().length(6)
+    code: z.string().length(6),
+    isOwner: z.boolean().default(false).optional()
   })
   .strict()
   .superRefine(({ confirmPassword, password }, ctx) => {
@@ -22,13 +23,6 @@ export const RegisterBodySchema = UserSchema.pick({
       })
     }
   })
-
-export const RegisterResSchema = UserSchema.omit({
-  password: true,
-  totpSecret: true
-}).extend({
-  message: z.string()
-})
 
 export const VerificationCodeSchema = z.object({
   id: z.number(),
@@ -78,8 +72,10 @@ export const LoginBodySchema = UserSchema.pick({
   })
 
 export const LoginResSchema = z.object({
-  accessToken: z.string(),
-  refreshToken: z.string(),
+  data: z.object({
+    accessToken: z.string(),
+    refreshToken: z.string()
+  }),
   message: z.string()
 })
 
@@ -158,13 +154,14 @@ export const DisableTwoFactorBodySchema = z
     }
   })
 export const TwoFactorSetupResSchema = z.object({
-  secret: z.string(),
-  uri: z.string(),
+  data: z.object({
+    secret: z.string(),
+    uri: z.string()
+  }),
   message: z.string()
 })
 
 export type RegisterBodyType = z.infer<typeof RegisterBodySchema>
-export type RegisterResType = z.infer<typeof RegisterResSchema>
 export type VerificationCodeType = z.infer<typeof VerificationCodeSchema>
 export type SendOTPBodyType = z.infer<typeof SendOTPBodySchema>
 export type LoginBodyType = z.infer<typeof LoginBodySchema>
