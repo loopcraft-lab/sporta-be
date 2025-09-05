@@ -32,7 +32,12 @@ const configSchema = z.object({
   //otp:
   OTP_EXPIRES_IN: z.string(),
   //redis:
-  REDIS_URL: z.string()
+  REDIS_URL: z.string(),
+  //init account
+  ADMIN_EMAIL: z.email(),
+  ADMIN_PASSWORD: z.string().min(6),
+  ADMIN_NAME: z.string(),
+  ADMIN_PHONE_NUMBER: z.string()
   // //AWS S3
   // S3_REGION: z.string(),
   // S3_ACCESS_KEY: z.string(),

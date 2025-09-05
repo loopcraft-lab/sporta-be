@@ -5,7 +5,7 @@ import z from 'zod'
 
 export const UserSchema = z.object({
   id: z.number().describe('The unique identifier of the user'),
-  email: z.string().email().describe('The email address of the user'),
+  email: z.email().describe('The email address of the user'),
   name: z.string().min(1).max(100).describe('The name of the user'),
   password: z.string().min(6).max(100).describe('The password of the user'),
   phoneNumber: z.string().min(9).max(15).describe('The phone number of the user'),

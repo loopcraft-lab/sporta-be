@@ -1,5 +1,6 @@
 import { AccessTokenGuard } from '@/shared/guards/access-token.guard'
 import { AuthenticationGuard } from '@/shared/guards/authentication.guard'
+import { SharedRoleRepository } from '@/shared/repositories/shared-role.repository'
 import { SharedUserRepository } from '@/shared/repositories/shared-user.repository'
 import { EmailService } from '@/shared/services/email.service'
 import { HashingService } from '@/shared/services/hashing.service'
@@ -14,7 +15,8 @@ const sharedServices = [
   TokenService,
   EmailService,
   HashingService,
-  SharedUserRepository
+  SharedUserRepository,
+  SharedRoleRepository
 ]
 
 @Global()

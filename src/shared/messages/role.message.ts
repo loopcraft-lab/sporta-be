@@ -1,8 +1,7 @@
-export const RoleMessage = {
-  ROLE_NOT_FOUND: 'Role not found',
-  ROLE_ALREADY_EXISTS: 'Role already exists',
-  ROLES_RETRIEVED_SUCCESSFULLY: 'Roles retrieved successfully',
-  ROLE_CREATED_SUCCESSFULLY: 'Role created successfully',
-  ROLE_UPDATED_SUCCESSFULLY: 'Role updated successfully',
-  ROLE_DELETED_SUCCESSFULLY: 'Role deleted successfully'
+export const ROLE_MESSAGE = {
+  CREATE_SUCCESS: 'Tạo vai trò thành công',
+  UPDATE_SUCCESS: 'Cập nhật vai trò thành công',
+  DELETE_SUCCESS: 'Xóa vai trò thành công',
+  GET_DETAIL_SUCCESS: 'Lấy chi tiết vai trò thành công',
+  LIST_SUCCESS: 'Lấy danh sách vai trò thành công'
 }
