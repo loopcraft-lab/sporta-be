@@ -7,5 +7,12 @@ export const PaginationQuerySchema = z.object({
   limit: z.coerce.number().int().positive().default(10) // Phải thêm coerce để chuyển từ string sang number
 })
 
+export const GetByIdParamsSchema = z
+  .object({
+    id: z.coerce.number().int().positive()
+  })
+  .strict()
+
 export type EmptyBodyType = z.infer<typeof EmptyBodySchema>
 export type PaginationQueryType = z.infer<typeof PaginationQuerySchema>
+export type GetByIdParamsType = z.infer<typeof GetByIdParamsSchema>

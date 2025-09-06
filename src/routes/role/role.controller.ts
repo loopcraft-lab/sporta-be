@@ -2,12 +2,11 @@ import {
   CreateRoleBodyDTO,
   CreateRoleResDTO,
   GetRoleDetailResDTO,
-  GetRoleParamsDTO,
   GetRolesResDTO,
   UpdateRoleBodyDTO
 } from '@/routes/role/role.dto'
 import { ActiveUser } from '@/shared/decorators/active-user.decorator'
-import { PaginationQueryDTO } from '@/shared/dtos/request.dto'
+import { GetByIdParamsDTO, PaginationQueryDTO } from '@/shared/dtos/request.dto'
 import { MessageResDTO } from '@/shared/dtos/response.dto'
 import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
@@ -32,8 +31,8 @@ export class RoleController {
 
   @Get(':roleId')
   @ZodResponse({ type: GetRoleDetailResDTO })
-  findById(@Param() params: GetRoleParamsDTO) {
-    return this.roleService.findById(params.roleId)
+  findById(@Param() params: GetByIdParamsDTO) {
+    return this.roleService.findById(params.id)
   }
 
   @Post()
@@ -49,21 +48,21 @@ export class RoleController {
   @ZodResponse({ type: GetRoleDetailResDTO })
   update(
     @Body() body: UpdateRoleBodyDTO,
-    @Param() params: GetRoleParamsDTO,
+    @Param() params: GetByIdParamsDTO,
     @ActiveUser('userId') userId: number
   ) {
     return this.roleService.update({
       data: body,
-      id: params.roleId,
+      id: params.id,
       updatedById: userId
     })
   }
 
   @Delete(':roleId')
   @ZodResponse({ type: MessageResDTO })
-  delete(@Param() params: GetRoleParamsDTO, @ActiveUser('userId') userId: number) {
+  delete(@Param() params: GetByIdParamsDTO, @ActiveUser('userId') userId: number) {
     return this.roleService.delete({
-      id: params.roleId,
+      id: params.id,
       deletedById: userId
     })
   }
