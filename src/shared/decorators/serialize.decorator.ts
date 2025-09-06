@@ -1,32 +1,4 @@
 /**
- * Helper function để serialize dates cho zod validation
- */
-function serializeForZod(obj: any): any {
-  if (obj === null || obj === undefined) {
-    return obj
-  }
-
-  if (obj instanceof Date) {
-    // Convert Date to ISO date string (YYYY-MM-DD) for z.iso.date()
-    return obj.toISOString().split('T')[0]
-  }
-
-  if (Array.isArray(obj)) {
-    return obj.map(serializeForZod)
-  }
-
-  if (typeof obj === 'object') {
-    const serialized: any = {}
-    for (const [key, value] of Object.entries(obj)) {
-      serialized[key] = serializeForZod(value)
-    }
-    return serialized
-  }
-
-  return obj
-}
-
-/**
  * Method decorator để tự động serialize return value
  */
 export function Serialize() {
@@ -41,7 +13,7 @@ export function Serialize() {
         return result
       }
 
-      return serializeForZod(result)
+      return JSON.parse(JSON.stringify(result))
     }
 
     return descriptor
@@ -75,7 +47,7 @@ export function SerializeAll(excludeMethods: string[] = []) {
           return result
         }
 
-        return serializeForZod(result)
+        return JSON.parse(JSON.stringify(result))
       }
     })
 

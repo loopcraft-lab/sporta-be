@@ -35,8 +35,8 @@ export const VerificationCodeSchema = z.object({
     TypeOfVerificationCode.DISABLE_2FA,
     TypeOfVerificationCode.WITHDRAW_MONEY
   ]),
-  expiresAt: z.iso.date(),
-  createdAt: z.iso.date()
+  expiresAt: z.iso.datetime(),
+  createdAt: z.iso.datetime()
 })
 
 export const SendOTPBodySchema = VerificationCodeSchema.pick({
@@ -90,8 +90,8 @@ export const RefreshTokenResSchema = LoginResSchema
 export const RefreshTokenSchema = z.object({
   token: z.string(),
   userId: z.number(),
-  expiresAt: z.iso.date(),
-  createdAt: z.iso.date()
+  expiresAt: z.iso.datetime(),
+  createdAt: z.iso.datetime()
 })
 
 export const RoleSchema = z.object({
@@ -101,9 +101,9 @@ export const RoleSchema = z.object({
   isActive: z.boolean(),
   createdById: z.number().nullable(),
   updatedById: z.number().nullable(),
-  deletedAt: z.iso.date().nullable(),
-  createdAt: z.iso.date(),
-  updatedAt: z.iso.date()
+  deletedAt: z.iso.datetime().nullable(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime()
 })
 
 export const LogoutBodySchema = RefreshTokenBodySchema
