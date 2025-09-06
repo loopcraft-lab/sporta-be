@@ -17,12 +17,6 @@ export const GetRolesResSchema = z.object({
   })
 })
 
-export const GetRoleParamsSchema = z
-  .object({
-    roleId: z.coerce.number()
-  })
-  .strict()
-
 export const GetRoleDetailResSchema = z.object({
   data: RoleWithPermissionsSchema,
   message: z.string()
@@ -54,5 +48,4 @@ export type GetRolesResType = z.infer<typeof GetRolesResSchema>
 export type GetRoleDetailResType = z.infer<typeof GetRoleDetailResSchema>
 export type CreateRoleResType = z.infer<typeof CreateRoleResSchema>
 export type CreateRoleBodyType = z.infer<typeof CreateRoleBodySchema>
-export type GetRoleParamsType = z.infer<typeof GetRoleParamsSchema>
 export type UpdateRoleBodyType = z.infer<typeof UpdateRoleBodySchema>

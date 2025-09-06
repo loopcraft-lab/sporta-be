@@ -1,12 +1,11 @@
 import {
   CreatePermissionBodyDTO,
   GetPermissionDetailResDTO,
-  GetPermissionParamsDTO,
   GetPermissionsResDTO,
   UpdatePermissionBodyDTO
 } from '@/routes/permission/permission.dto'
 import { ActiveUser } from '@/shared/decorators/active-user.decorator'
-import { PaginationQueryDTO } from '@/shared/dtos/request.dto'
+import { GetByIdParamsDTO, PaginationQueryDTO } from '@/shared/dtos/request.dto'
 import { MessageResDTO } from '@/shared/dtos/response.dto'
 import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
@@ -30,8 +29,8 @@ export class PermissionController {
 
   @Get(':permissionId')
   @ZodResponse({ type: GetPermissionDetailResDTO })
-  findById(@Param() params: GetPermissionParamsDTO) {
-    return this.permissionService.findById(params.permissionId)
+  findById(@Param() params: GetByIdParamsDTO) {
+    return this.permissionService.findById(params.id)
   }
 
   @Post()
@@ -47,21 +46,21 @@ export class PermissionController {
   @ZodResponse({ type: GetPermissionDetailResDTO })
   update(
     @Body() body: UpdatePermissionBodyDTO,
-    @Param() params: GetPermissionParamsDTO,
+    @Param() params: GetByIdParamsDTO,
     @ActiveUser('userId') userId: number
   ) {
     return this.permissionService.update({
       data: body,
-      id: params.permissionId,
+      id: params.id,
       updatedById: userId
     })
   }
 
   @Delete(':permissionId')
   @ZodResponse({ type: MessageResDTO })
-  delete(@Param() params: GetPermissionParamsDTO, @ActiveUser('userId') userId: number) {
+  delete(@Param() params: GetByIdParamsDTO, @ActiveUser('userId') userId: number) {
     return this.permissionService.delete({
-      id: params.permissionId,
+      id: params.id,
       deletedById: userId
     })
   }

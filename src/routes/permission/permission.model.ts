@@ -12,12 +12,6 @@ export const GetPermissionsResSchema = z.object({
   })
 })
 
-export const GetPermissionParamsSchema = z
-  .object({
-    permissionId: z.coerce.number()
-  })
-  .strict()
-
 export const GetPermissionDetailResSchema = z.object({
   data: PermissionSchema,
   message: z.string()
@@ -36,5 +30,4 @@ export type PermissionType = z.infer<typeof PermissionSchema>
 export type GetPermissionsResType = z.infer<typeof GetPermissionsResSchema>
 export type GetPermissionDetailResType = z.infer<typeof GetPermissionDetailResSchema>
 export type CreatePermissionBodyType = z.infer<typeof CreatePermissionBodySchema>
-export type GetPermissionParamsType = z.infer<typeof GetPermissionParamsSchema>
 export type UpdatePermissionBodyType = z.infer<typeof UpdatePermissionBodySchema>
