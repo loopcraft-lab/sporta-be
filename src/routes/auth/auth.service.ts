@@ -4,10 +4,15 @@ import {
   EmailNotFoundException,
   FailedToSendOTPException,
   InvalidOTPException,
+  InvalidTOTPAndCodeException,
+  InvalidTOTPException,
   OTPExpiredException,
-  RefreshTokenAlreadyUsedException
+  RefreshTokenAlreadyUsedException,
+  TOTPAlreadyEnabledException,
+  TOTPNotEnabledException
 } from '@/routes/auth/auth.error'
 import {
+  DisableTwoFactorBodyType,
   ForgotPasswordBodyType,
   LoginBodyType,
   RefreshTokenBodyType,
@@ -28,6 +33,7 @@ import {
 import { AUTH_MESSAGE } from '@/shared/messages/auth.message'
 import { SharedRoleRepository } from '@/shared/repositories/shared-role.repository'
 import { SharedUserRepository } from '@/shared/repositories/shared-user.repository'
+import { TwoFactorService } from '@/shared/services/2fa.service'
 import { EmailService } from '@/shared/services/email.service'
 import { HashingService } from '@/shared/services/hashing.service'
 import { TokenService } from '@/shared/services/token.service'
@@ -45,7 +51,8 @@ export class AuthService {
     private readonly sharedUserRepository: SharedUserRepository,
     private readonly sharedRoleRepository: SharedRoleRepository,
     private readonly hashingService: HashingService,
-    private readonly tokenService: TokenService
+    private readonly tokenService: TokenService,
+    private readonly twoFactorService: TwoFactorService
   ) {}
 
   async validateVerificationCode({
@@ -117,32 +124,32 @@ export class AuthService {
     if (!isPasswordMatch) {
       throw InvalidPasswordException
     }
-    // 2. Nếu user đã bật mã 2FA thì kiểm tra mã 2FA TOTP Code hoặc OTP Code (email)
-    // if (user.totpSecret) {
-    //   // Nếu không có mã TOTP Code và Code thì thông báo cho client biết
-    //   if (!body.totpCode && !body.code) {
-    //     throw InvalidTOTPAndCodeException
-    //   }
+    //2. Nếu user đã bật mã 2FA thì kiểm tra mã 2FA TOTP Code hoặc OTP Code (email)
+    if (user.totpSecret) {
+      // Nếu không có mã TOTP Code và Code thì thông báo cho client biết
+      if (!body.totpCode && !body.code) {
+        throw InvalidTOTPAndCodeException
+      }
 
-    //   // Kiểm tra TOTP Code có hợp lệ hay không
-    //   if (body.totpCode) {
-    //     const isValid = this.twoFactorService.verifyTOTP({
-    //       email: user.email,
-    //       secret: user.totpSecret,
-    //       token: body.totpCode
-    //     })
-    //     if (!isValid) {
-    //       throw InvalidTOTPException
-    //     }
-    //   } else if (body.code) {
-    //     // Kiểm tra mã OTP có hợp lệ không
-    //     await this.validateVerificationCode({
-    //       email: user.email,
-    //       type: TypeOfVerificationCode.LOGIN,
-    //       code: body.code
-    //     })
-    //   }
-    // }
+      // Kiểm tra TOTP Code có hợp lệ hay không
+      if (body.totpCode) {
+        const isValid = this.twoFactorService.verifyTOTP({
+          email: user.email,
+          secret: user.totpSecret,
+          token: body.totpCode
+        })
+        if (!isValid) {
+          throw InvalidTOTPException
+        }
+      } else if (body.code) {
+        // Kiểm tra mã OTP có hợp lệ không
+        await this.validateVerificationCode({
+          email: user.email,
+          type: TypeOfVerificationCode.LOGIN,
+          code: body.code
+        })
+      }
+    }
 
     const tokens = await this.generateTokens({
       userId: user.id,
@@ -303,5 +310,75 @@ export class AuthService {
       expiresAt: new Date(decodedRefreshToken.exp * 1000)
     })
     return { accessToken, refreshToken }
+  }
+
+  async setupTwoFactorAuth(userId: number) {
+    // 1. Lấy thông tin user, kiểm tra xem user có tồn tại hay không, và xem họ đã bật 2FA chưa
+    const user = await this.sharedUserRepository.findUnique({
+      id: userId
+    })
+    if (!user) {
+      throw EmailNotFoundException
+    }
+    if (user.totpSecret) {
+      throw TOTPAlreadyEnabledException
+    }
+    // 2. Tạo ra secret và uri
+    const { secret, uri } = this.twoFactorService.generateTOTPSecret(user.email)
+    // 3. Cập nhật secret vào user trong database
+    await this.sharedUserRepository.update(
+      { id: userId },
+      { totpSecret: secret, updatedById: userId }
+    )
+    // 4. Trả về secret và uri
+    return {
+      data: {
+        secret,
+        uri
+      },
+      message: AUTH_MESSAGE.ENABLE_2FA_SUCCESS
+    }
+  }
+
+  async disableTwoFactorAuth(data: DisableTwoFactorBodyType & { userId: number }) {
+    const { userId, totpCode, code } = data
+    // 1. Lấy thông tin user, kiểm tra xem user có tồn tại hay không, và xem họ đã bật 2FA chưa
+    const user = await this.sharedUserRepository.findUnique({ id: userId })
+    if (!user) {
+      throw EmailNotFoundException
+    }
+    if (!user.totpSecret) {
+      throw TOTPNotEnabledException
+    }
+
+    // 2. Kiểm tra mã TOTP có hợp lệ hay không
+    if (totpCode) {
+      const isValid = this.twoFactorService.verifyTOTP({
+        email: user.email,
+        secret: user.totpSecret,
+        token: totpCode
+      })
+      if (!isValid) {
+        throw InvalidTOTPException
+      }
+    } else if (code) {
+      // 3. Kiểm tra mã OTP email có hợp lệ hay không
+      await this.validateVerificationCode({
+        email: user.email,
+        type: TypeOfVerificationCode.DISABLE_2FA,
+        code
+      })
+    }
+
+    // 4. Cập nhật secret thành null
+    await this.sharedUserRepository.update(
+      { id: userId },
+      { totpSecret: null, updatedById: userId }
+    )
+
+    // 5. Trả về thông báo
+    return {
+      message: AUTH_MESSAGE.DISABLE_2FA_SUCCESS
+    }
   }
 }
