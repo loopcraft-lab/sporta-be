@@ -109,7 +109,7 @@ export const RoleSchema = z.object({
 export const LogoutBodySchema = RefreshTokenBodySchema
 
 export const GetAuthorizationUrlResSchema = z.object({
-  url: z.string().url()
+  url: z.url()
 })
 
 export const ForgotPasswordBodySchema = z
