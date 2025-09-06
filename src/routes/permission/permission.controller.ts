@@ -9,11 +9,12 @@ import { ActiveUser } from '@/shared/decorators/active-user.decorator'
 import { PaginationQueryDTO } from '@/shared/dtos/request.dto'
 import { MessageResDTO } from '@/shared/dtos/response.dto'
 import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common'
-import { ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { ZodResponse } from 'nestjs-zod'
 import { PermissionService } from './permission.service'
 
 @ApiTags('permission')
+@ApiBearerAuth()
 @Controller('permission')
 export class PermissionController {
   constructor(private readonly permissionService: PermissionService) {}
