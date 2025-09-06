@@ -44,7 +44,7 @@ export class AuthController {
   @Post('refresh-token')
   @IsPublic()
   @HttpCode(HttpStatus.OK)
-  @ZodResponse({ type: MessageResDTO })
+  @ZodResponse({ type: LoginResDTO })
   refreshToken(@Body() body: RefreshTokenBodyDTO) {
     return this.authService.refreshToken({
       refreshToken: body.refreshToken

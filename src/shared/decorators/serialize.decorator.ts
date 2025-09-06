@@ -1,4 +1,32 @@
 /**
+ * Helper function để serialize dates cho zod validation
+ */
+function serializeForZod(obj: any): any {
+  if (obj === null || obj === undefined) {
+    return obj
+  }
+
+  if (obj instanceof Date) {
+    // Convert Date to ISO date string (YYYY-MM-DD) for z.iso.date()
+    return obj.toISOString().split('T')[0]
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(serializeForZod)
+  }
+
+  if (typeof obj === 'object') {
+    const serialized: any = {}
+    for (const [key, value] of Object.entries(obj)) {
+      serialized[key] = serializeForZod(value)
+    }
+    return serialized
+  }
+
+  return obj
+}
+
+/**
  * Method decorator để tự động serialize return value
  */
 export function Serialize() {
@@ -13,38 +41,11 @@ export function Serialize() {
         return result
       }
 
-      return serializeObject(result)
+      return serializeForZod(result)
     }
 
     return descriptor
   }
-}
-
-/**
- * Utility function để serialize object với xử lý Date objects thành ISO strings
- */
-function serializeObject(obj: any): any {
-  if (obj === null || obj === undefined) {
-    return obj
-  }
-
-  if (obj instanceof Date) {
-    return obj.toISOString()
-  }
-
-  if (Array.isArray(obj)) {
-    return obj.map((item) => serializeObject(item))
-  }
-
-  if (typeof obj === 'object') {
-    const serialized: any = {}
-    for (const [key, value] of Object.entries(obj)) {
-      serialized[key] = serializeObject(value)
-    }
-    return serialized
-  }
-
-  return obj
 }
 
 /**
@@ -67,28 +68,14 @@ export function SerializeAll(excludeMethods: string[] = []) {
     methodNames.forEach((methodName) => {
       const originalMethod = prototype[methodName]
 
-      // Chỉ wrap methods không phải getter/setter
-      if (typeof originalMethod === 'function') {
-        prototype[methodName] = function (...args: any[]) {
-          const result = originalMethod.apply(this, args)
+      prototype[methodName] = async function (...args: any[]) {
+        const result = await originalMethod.apply(this, args)
 
-          // Handle async methods
-          if (result instanceof Promise) {
-            return result.then((resolvedResult) => {
-              if (resolvedResult === null || resolvedResult === undefined) {
-                return resolvedResult
-              }
-              return serializeObject(resolvedResult)
-            })
-          }
-
-          // Handle sync methods
-          if (result === null || result === undefined) {
-            return result
-          }
-
-          return serializeObject(result)
+        if (result === null || result === undefined) {
+          return result
         }
+
+        return serializeForZod(result)
       }
     })
 
