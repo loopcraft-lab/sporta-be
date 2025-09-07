@@ -8,6 +8,7 @@ import { Module } from '@nestjs/common'
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
 import { ZodSerializerInterceptor } from 'nestjs-zod'
 import { AuthModule } from './routes/auth/auth.module'
+import { BusinessModule } from './routes/business/business.module'
 import { PermissionModule } from './routes/permission/permission.module'
 import { RoleModule } from './routes/role/role.module'
 import { UserModule } from './routes/user/user.module'
@@ -32,7 +33,8 @@ import { SharedModule } from './shared/shared.module'
     UserModule,
     RoleModule,
     PermissionModule,
-    AuthModule
+    AuthModule,
+    BusinessModule
   ],
   controllers: [],
   providers: [

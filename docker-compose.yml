@@ -21,6 +21,10 @@ services:
       - '6380:6379'
     volumes:
       - redis_data:/data
+    command: ['redis-server', '--requirepass', 'sporta']
+    environment:
+      REDIS_PASSWORD: sporta
+
 volumes:
   postgres_data:
   redis_data:
