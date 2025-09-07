@@ -1,30 +1,30 @@
 import {
-  BusinessType,
-  CreateBusinessBodyType,
-  GetBusinessesResType,
-  UpdateBusinessBodyType
-} from '@/routes/business/business.model'
+  CreateSportBodyType,
+  GetSportsResType,
+  SportType,
+  UpdateSportBodyType
+} from '@/routes/sport/sport.model'
 import { SerializeAll } from '@/shared/decorators/serialize.decorator'
-import { BUSINESS_MESSAGE } from '@/shared/messages/business.message'
+import { SPORT_MESSAGE } from '@/shared/messages/sport.message'
 import { PaginationQueryType } from '@/shared/models/request.model'
 import { PrismaService } from '@/shared/services/prisma.service'
 import { Injectable } from '@nestjs/common'
 
 @Injectable()
 @SerializeAll()
-export class BusinessRepository {
+export class SportRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async list(pagination: PaginationQueryType): Promise<GetBusinessesResType> {
+  async list(pagination: PaginationQueryType): Promise<GetSportsResType> {
     const skip = (pagination.page - 1) * pagination.limit
     const take = pagination.limit
     const [totalItems, data] = await Promise.all([
-      this.prismaService.business.count({
+      this.prismaService.sport.count({
         where: {
           deletedAt: null
         }
       }),
-      this.prismaService.business.findMany({
+      this.prismaService.sport.findMany({
         where: {
           deletedAt: null
         },
@@ -40,14 +40,14 @@ export class BusinessRepository {
         limit: pagination.limit,
         totalPages: Math.ceil(totalItems / pagination.limit)
       },
-      message: BUSINESS_MESSAGE.LIST_SUCCESS
+      message: SPORT_MESSAGE.LIST_SUCCESS
     } as any
   }
 
-  findById(id: number): Promise<BusinessType | null> {
-    return this.prismaService.business.findUnique({
+  findById(id: number): Promise<SportType | null> {
+    return this.prismaService.sport.findUnique({
       where: {
-        userId: id,
+        id,
         deletedAt: null
       }
     }) as any
@@ -58,11 +58,10 @@ export class BusinessRepository {
     data
   }: {
     createdById: number | null
-    data: CreateBusinessBodyType
-  }): Promise<BusinessType> {
-    return this.prismaService.business.create({
+    data: CreateSportBodyType
+  }): Promise<SportType> {
+    return this.prismaService.sport.create({
       data: {
-        userId: createdById!,
         ...data,
         createdById
       }
@@ -76,11 +75,11 @@ export class BusinessRepository {
   }: {
     id: number
     updatedById: number
-    data: UpdateBusinessBodyType
-  }): Promise<BusinessType> {
-    return this.prismaService.business.update({
+    data: UpdateSportBodyType
+  }): Promise<SportType & { roles: { id: number }[] }> {
+    return this.prismaService.sport.update({
       where: {
-        userId: id,
+        id,
         deletedAt: null
       },
       data: {
@@ -99,17 +98,17 @@ export class BusinessRepository {
       deletedById: number
     },
     isHard?: boolean
-  ): Promise<BusinessType> {
+  ): Promise<SportType> {
     return (
       isHard
-        ? this.prismaService.business.delete({
+        ? this.prismaService.sport.delete({
             where: {
-              userId: id
+              id
             }
           })
-        : this.prismaService.business.update({
+        : this.prismaService.sport.update({
             where: {
-              userId: id,
+              id,
               deletedAt: null
             },
             data: {

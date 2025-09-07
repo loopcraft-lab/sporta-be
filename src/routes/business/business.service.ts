@@ -8,11 +8,15 @@ import { NotFoundRecordException } from '@/shared/error'
 import { isNotFoundPrismaError, isUniqueConstraintPrismaError } from '@/shared/helper'
 import { BUSINESS_MESSAGE } from '@/shared/messages/business.message'
 import { PaginationQueryType } from '@/shared/models/request.model'
-import { Injectable } from '@nestjs/common'
+import { SharedRoleRepository } from '@/shared/repositories/shared-role.repository'
+import { ForbiddenException, Injectable } from '@nestjs/common'
 
 @Injectable()
 export class BusinessService {
-  constructor(private readonly businessRepository: BusinessRepository) {}
+  constructor(
+    private readonly businessRepository: BusinessRepository,
+    private readonly sharedRole: SharedRoleRepository
+  ) {}
 
   async list(pagination: PaginationQueryType) {
     const data = await this.businessRepository.list(pagination)
@@ -38,6 +42,10 @@ export class BusinessService {
     createdById: number
   }) {
     try {
+      const ownerId = this.sharedRole.getOwnerRoleId()
+      if ((await ownerId) !== createdById) {
+        throw new ForbiddenException()
+      }
       const business = await this.businessRepository.create({
         createdById,
         data
