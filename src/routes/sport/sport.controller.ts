@@ -1,55 +1,58 @@
 import {
-  CreateBusinessBodyDTO,
-  GetBusinessDetailResDTO,
-  GetBusinessesResDTO,
-  UpdateBusinessBodyDTO
-} from '@/routes/business/business.dto'
+  CreateSportBodyDTO,
+  GetSportDetailResDTO,
+  GetSportsResDTO,
+  UpdateSportBodyDTO
+} from '@/routes/sport/sport.dto'
 import { ActiveUser } from '@/shared/decorators/active-user.decorator'
+import { IsPublic } from '@/shared/decorators/auth.decorator'
 import { GetByIdParamsDTO, PaginationQueryDTO } from '@/shared/dtos/request.dto'
 import { MessageResDTO } from '@/shared/dtos/response.dto'
 import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { ZodResponse } from 'nestjs-zod'
-import { BusinessService } from './business.service'
+import { SportService } from './sport.service'
 
-@ApiTags('Business')
+@ApiTags('Sport')
 @ApiBearerAuth()
-@Controller('business')
-export class BusinessController {
-  constructor(private readonly businessService: BusinessService) {}
+@Controller('sport')
+export class SportController {
+  constructor(private readonly sportService: SportService) {}
 
   @Get()
-  @ZodResponse({ type: GetBusinessesResDTO })
+  @IsPublic()
+  @ZodResponse({ type: GetSportsResDTO })
   list(@Query() query: PaginationQueryDTO) {
-    return this.businessService.list({
+    return this.sportService.list({
       page: query.page,
       limit: query.limit
     })
   }
 
   @Get(':id')
-  @ZodResponse({ type: GetBusinessDetailResDTO })
+  @IsPublic()
+  @ZodResponse({ type: GetSportDetailResDTO })
   findById(@Param() params: GetByIdParamsDTO) {
-    return this.businessService.findById(params.id)
+    return this.sportService.findById(params.id)
   }
 
   @Post()
-  @ZodResponse({ type: GetBusinessDetailResDTO })
-  create(@Body() body: CreateBusinessBodyDTO, @ActiveUser('userId') userId: number) {
-    return this.businessService.create({
+  @ZodResponse({ type: GetSportDetailResDTO })
+  create(@Body() body: CreateSportBodyDTO, @ActiveUser('userId') userId: number) {
+    return this.sportService.create({
       data: body,
       createdById: userId
     })
   }
 
   @Put(':id')
-  @ZodResponse({ type: GetBusinessDetailResDTO })
+  @ZodResponse({ type: GetSportDetailResDTO })
   update(
-    @Body() body: UpdateBusinessBodyDTO,
+    @Body() body: UpdateSportBodyDTO,
     @Param() params: GetByIdParamsDTO,
     @ActiveUser('userId') userId: number
   ) {
-    return this.businessService.update({
+    return this.sportService.update({
       data: body,
       id: params.id,
       updatedById: userId
@@ -59,7 +62,7 @@ export class BusinessController {
   @Delete(':id')
   @ZodResponse({ type: MessageResDTO })
   delete(@Param() params: GetByIdParamsDTO, @ActiveUser('userId') userId: number) {
-    return this.businessService.delete({
+    return this.sportService.delete({
       id: params.id,
       deletedById: userId
     })
