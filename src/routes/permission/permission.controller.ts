@@ -12,7 +12,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { ZodResponse } from 'nestjs-zod'
 import { PermissionService } from './permission.service'
 
-@ApiTags('permission')
+@ApiTags('Permission')
 @ApiBearerAuth()
 @Controller('permission')
 export class PermissionController {
@@ -27,7 +27,7 @@ export class PermissionController {
     })
   }
 
-  @Get(':permissionId')
+  @Get(':id')
   @ZodResponse({ type: GetPermissionDetailResDTO })
   findById(@Param() params: GetByIdParamsDTO) {
     return this.permissionService.findById(params.id)
@@ -42,7 +42,7 @@ export class PermissionController {
     })
   }
 
-  @Put(':permissionId')
+  @Put(':id')
   @ZodResponse({ type: GetPermissionDetailResDTO })
   update(
     @Body() body: UpdatePermissionBodyDTO,
@@ -56,7 +56,7 @@ export class PermissionController {
     })
   }
 
-  @Delete(':permissionId')
+  @Delete(':id')
   @ZodResponse({ type: MessageResDTO })
   delete(@Param() params: GetByIdParamsDTO, @ActiveUser('userId') userId: number) {
     return this.permissionService.delete({

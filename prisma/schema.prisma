@@ -38,6 +38,13 @@ model User {
   deletedBy    User?  @relation("DeletorUsers", fields: [deletedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
   deletedUsers User[] @relation("DeletorUsers")
 
+  // Business relations
+  business         Business?  @relation("BusinessUser")
+  approvedBusiness Business[] @relation("BusinessApprovedBy")
+  createdBusiness  Business[] @relation("BusinessCreatedBy")
+  updatedBusiness  Business[] @relation("BusinessUpdatedBy")
+  deletedBusiness  Business[] @relation("BusinessDeletedBy")
+
   deletedAt DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -46,13 +53,12 @@ model User {
 }
 
 model VerificationCode {
-  id    Int                  @id @default(autoincrement())
-  email String               @db.VarChar(500)
-  code  String               @db.VarChar(50)
-  type  VerificationCodeType
-
+  id        Int                  @id @default(autoincrement())
+  email     String               @db.VarChar(500)
+  code      String               @db.VarChar(50)
+  type      VerificationCodeType
   expiresAt DateTime
-  createdAt DateTime @default(now())
+  createdAt DateTime             @default(now())
 
   @@unique([email, type])
   @@index([expiresAt])
@@ -78,15 +84,14 @@ model Permission {
   roles       Role[]
 
   createdById Int?
-  createdBy   User? @relation("PermissionCreatedBy", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  createdBy   User?     @relation("PermissionCreatedBy", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: NoAction)
   updatedById Int?
-  updatedBy   User? @relation("PermissionUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  updatedBy   User?     @relation("PermissionUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
   deletedById Int?
-  deletedBy   User? @relation("PermissionDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
-
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  deletedBy   User?     @relation("PermissionDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([deletedAt])
 }
@@ -100,19 +105,45 @@ model Role {
   users       User[]
 
   createdById Int?
-  createdBy   User? @relation("RoleCreatedBy", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  createdBy   User?     @relation("RoleCreatedBy", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: NoAction)
   updatedById Int?
-  updatedBy   User? @relation("RoleUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  updatedBy   User?     @relation("RoleUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
   deletedById Int?
-  deletedBy   User? @relation("RoleDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
-
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  deletedBy   User?     @relation("RoleDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([deletedAt])
 }
 
+model Business {
+  userId       Int                      @unique
+  name         String                   @db.VarChar(500)
+  license      String?                  @db.VarChar(500)
+  bankName     String?                  @db.VarChar(500)
+  bankNumber   String?                  @db.VarChar(500)
+  verified     BusinessVerificationType @default(PENDING)
+  approvedById Int?
+  rejectReason String?                  @db.VarChar(1000)
+
+  user       User  @relation("BusinessUser", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  approvedBy User? @relation("BusinessApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  createdById Int?
+  createdBy   User?     @relation("BusinessCreatedBy", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  updatedById Int?
+  updatedBy   User?     @relation("BusinessUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  deletedById Int?
+  deletedBy   User?     @relation("BusinessDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([deletedAt])
+}
+
+// Enums
 enum VerificationCodeType {
   REGISTER
   FORGOT_PASSWORD
@@ -127,10 +158,10 @@ enum UserStatus {
   INACTIVE
 }
 
-enum OwnerVerificationStatus {
-  Pending
-  Approved
-  Rejected
+enum BusinessVerificationType {
+  PENDING
+  VERIFIED
+  REJECTED
 }
 
 enum HTTPMethod {

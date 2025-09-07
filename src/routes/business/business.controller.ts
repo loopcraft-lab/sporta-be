@@ -1,66 +1,65 @@
 import {
-  CreateRoleBodyDTO,
-  CreateRoleResDTO,
-  GetRoleDetailResDTO,
-  GetRolesResDTO,
-  UpdateRoleBodyDTO
-} from '@/routes/role/role.dto'
+  CreateBusinessBodyDTO,
+  GetBusinessDetailResDTO,
+  GetBusinessesResDTO,
+  UpdateBusinessBodyDTO
+} from '@/routes/business/business.dto'
 import { ActiveUser } from '@/shared/decorators/active-user.decorator'
 import { GetByIdParamsDTO, PaginationQueryDTO } from '@/shared/dtos/request.dto'
 import { MessageResDTO } from '@/shared/dtos/response.dto'
 import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { ZodResponse } from 'nestjs-zod'
-import { RoleService } from './role.service'
+import { BusinessService } from './business.service'
 
-@ApiTags('Role')
+@ApiTags('Business')
 @ApiBearerAuth()
-@Controller('role')
-export class RoleController {
-  constructor(private readonly roleService: RoleService) {}
+@Controller('business')
+export class BusinessController {
+  constructor(private readonly businessService: BusinessService) {}
 
   @Get()
-  @ZodResponse({ type: GetRolesResDTO })
+  @ZodResponse({ type: GetBusinessesResDTO })
   list(@Query() query: PaginationQueryDTO) {
-    return this.roleService.list({
+    return this.businessService.list({
       page: query.page,
       limit: query.limit
     })
   }
 
-  @Get(':id')
-  @ZodResponse({ type: GetRoleDetailResDTO })
+  @Get('id')
+  @ZodResponse({ type: GetBusinessDetailResDTO })
   findById(@Param() params: GetByIdParamsDTO) {
-    return this.roleService.findById(params.id)
+    return this.businessService.findById(params.id)
   }
 
   @Post()
-  @ZodResponse({ type: CreateRoleResDTO })
-  create(@Body() body: CreateRoleBodyDTO, @ActiveUser('userId') userId: number) {
-    return this.roleService.create({
+  @ZodResponse({ type: GetBusinessDetailResDTO })
+  create(@Body() body: CreateBusinessBodyDTO, @ActiveUser('userId') userId: number) {
+    return this.businessService.create({
       data: body,
       createdById: userId
     })
   }
 
-  @Put(':id')
-  @ZodResponse({ type: GetRoleDetailResDTO })
+  @Put('id')
+  @ZodResponse({ type: GetBusinessDetailResDTO })
   update(
-    @Body() body: UpdateRoleBodyDTO,
+    @Body() body: UpdateBusinessBodyDTO,
     @Param() params: GetByIdParamsDTO,
     @ActiveUser('userId') userId: number
   ) {
-    return this.roleService.update({
+    return this.businessService.update({
       data: body,
       id: params.id,
       updatedById: userId
     })
   }
 
-  @Delete(':id')
+  @Delete('id')
   @ZodResponse({ type: MessageResDTO })
   delete(@Param() params: GetByIdParamsDTO, @ActiveUser('userId') userId: number) {
-    return this.roleService.delete({
+    return this.businessService.delete({
       id: params.id,
       deletedById: userId
     })

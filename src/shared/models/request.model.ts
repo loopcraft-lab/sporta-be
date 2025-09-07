@@ -9,7 +9,7 @@ export const PaginationQuerySchema = z.object({
 
 export const GetByIdParamsSchema = z
   .object({
-    id: z.coerce.number().int().positive()
+    id: z.coerce.number()
   })
   .strict()
 

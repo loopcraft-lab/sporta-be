@@ -31,7 +31,7 @@ import { Response } from 'express'
 import { ZodResponse } from 'nestjs-zod'
 import { AuthService } from './auth.service'
 
-@ApiTags('auth')
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(
