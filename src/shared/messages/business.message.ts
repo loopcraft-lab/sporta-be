@@ -4,4 +4,4 @@ export const BUSINESS_MESSAGE = {
   DELETE_SUCCESS: 'Xoá doanh nghiệp thành công',
   LIST_SUCCESS: 'Lấy danh sách doanh nghiệp thành công',
   DETAIL_SUCCESS: 'Lấy chi tiết doanh nghiệp thành công'
-}
+} as const

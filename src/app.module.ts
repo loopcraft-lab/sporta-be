@@ -8,6 +8,7 @@ import { Module } from '@nestjs/common'
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
 import { ZodSerializerInterceptor } from 'nestjs-zod'
 import { AuthModule } from './routes/auth/auth.module'
+import { LocationModule } from './routes/location/location.module'
 import { PermissionModule } from './routes/permission/permission.module'
 import { RoleModule } from './routes/role/role.module'
 import { SportProfileModule } from './routes/sport-profile/sport-profile.module'
@@ -36,7 +37,8 @@ import { SharedModule } from './shared/shared.module'
     PermissionModule,
     AuthModule,
     SportModule,
-    SportProfileModule
+    SportProfileModule,
+    LocationModule
   ],
   controllers: [],
   providers: [
