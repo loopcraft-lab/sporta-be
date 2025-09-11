@@ -4,4 +4,4 @@ export const USER_MESSAGE = {
   DELETE_SUCCESS: 'Xóa người dùng thành công',
   GET_DETAIL_SUCCESS: 'Lấy chi tiết người dùng thành công',
   LIST_SUCCESS: 'Lấy danh sách người dùng thành công'
-}
+} as const

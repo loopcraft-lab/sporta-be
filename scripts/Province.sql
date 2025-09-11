@@ -1,0 +1,1 @@
+INSERT INTO public."Province" (id, name, code, "createdById", "updatedById", "deletedById", "deletedAt", "createdAt", "updatedAt") VALUES (1, 'Thành phố Hồ Chí Minh', '79', 1, null, null, null, '2025-09-11 15:19:13.459', '2025-09-11 15:19:00.833');

@@ -4,4 +4,4 @@ export const PERMISSION_MESSAGE = {
   DELETE_SUCCESS: 'Xoá quyền thành công',
   LIST_SUCCESS: 'Lấy danh sách quyền thành công',
   DETAIL_SUCCESS: 'Lấy chi tiết quyền thành công'
-}
+} as const
