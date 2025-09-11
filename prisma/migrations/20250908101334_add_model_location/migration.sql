@@ -95,10 +95,6 @@ CREATE UNIQUE INDEX "Province_code_unique"
 ON "public"."Province" (code)
 WHERE "deletedAt" IS NULL;
 
-CREATE UNIQUE INDEX "District_code_unique"
-ON "public"."District" (code)
-WHERE "deletedAt" IS NULL;
-
 CREATE UNIQUE INDEX "Ward_code_unique"
 ON "public"."Ward" (code)
 WHERE "deletedAt" IS NULL;

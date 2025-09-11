@@ -1,7 +1,7 @@
 import {
   CreateWardBodySchema,
   GetWardDetailResSchema,
-  GetWardsByDistrictResSchema,
+  GetWardsByProvinceResSchema,
   GetWardsResSchema,
   UpdateWardBodySchema
 } from '@/routes/location/models/ward.model'
@@ -9,7 +9,7 @@ import { createZodDto } from 'nestjs-zod'
 
 export class GetWardsResDTO extends createZodDto(GetWardsResSchema) {}
 
-export class GetWardsByDistrictResDTO extends createZodDto(GetWardsByDistrictResSchema) {}
+export class GetWardsByProvinceResDTO extends createZodDto(GetWardsByProvinceResSchema) {}
 
 export class GetWardDetailResDTO extends createZodDto(GetWardDetailResSchema) {}
 

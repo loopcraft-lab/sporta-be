@@ -1,20 +1,9 @@
-import {
-  CreateDistrictBodyDTO,
-  GetDistrictDetailResDTO,
-  GetDistrictsByProvinceResDTO,
-  GetDistrictsResDTO,
-  GetDistrictWithWardsResDTO,
-  UpdateDistrictBodyDTO
-} from '@/routes/location/dtos/district.dto'
-import {
-  GetDistrictsByProvinceParamsDTO,
-  GetWardsByDistrictParamsDTO
-} from '@/routes/location/dtos/params.dto'
+import { GetWardsByProvinceParamsDTO } from '@/routes/location/dtos/params.dto'
 import {
   CreateProvinceBodyDTO,
   GetProvinceDetailResDTO,
   GetProvincesResDTO,
-  GetProvinceWithDistrictsResDTO,
+  GetProvinceWithWardsResDTO,
   UpdateProvinceBodyDTO
 } from '@/routes/location/dtos/province.dto'
 import {
@@ -26,7 +15,7 @@ import {
 import {
   CreateWardBodyDTO,
   GetWardDetailResDTO,
-  GetWardsByDistrictResDTO,
+  GetWardsByProvinceResDTO,
   GetWardsResDTO,
   UpdateWardBodyDTO
 } from '@/routes/location/dtos/ward.dto'
@@ -63,32 +52,18 @@ export class LocationController {
     })
   }
 
-  @Get('provinces/:provinceId/districts')
+  @Get('provinces/:provinceId/wards')
   @IsPublic()
-  @ZodResponse({ type: GetDistrictsByProvinceResDTO })
-  getDistrictsByProvince(@Param() params: GetDistrictsByProvinceParamsDTO) {
-    return this.locationService.listDistrictsByProvinceId(params.provinceId)
-  }
-
-  @Get('districts/:districtId/wards')
-  @IsPublic()
-  @ZodResponse({ type: GetWardsByDistrictResDTO })
-  getWardsByDistrict(@Param() params: GetWardsByDistrictParamsDTO) {
-    return this.locationService.listWardsByDistrictId(params.districtId)
+  @ZodResponse({ type: GetWardsByProvinceResDTO })
+  getWardsByProvince(@Param() params: GetWardsByProvinceParamsDTO) {
+    return this.locationService.listWardsByProvinceId(params.provinceId)
   }
 
   @Get('provinces/:id/full')
   @IsPublic()
-  @ZodResponse({ type: GetProvinceWithDistrictsResDTO })
-  getProvinceWithDistricts(@Param() params: GetByIdParamsDTO) {
-    return this.locationService.findProvinceByIdWithDistricts(params.id)
-  }
-
-  @Get('districts/:id/full')
-  @IsPublic()
-  @ZodResponse({ type: GetDistrictWithWardsResDTO })
-  getDistrictWithWards(@Param() params: GetByIdParamsDTO) {
-    return this.locationService.findDistrictByIdWithWards(params.id)
+  @ZodResponse({ type: GetProvinceWithWardsResDTO })
+  getProvinceWithWards(@Param() params: GetByIdParamsDTO) {
+    return this.locationService.findProvinceByIdWithWards(params.id)
   }
 
   // ==================== ADMIN APIS - PROVINCES ====================
@@ -146,66 +121,6 @@ export class LocationController {
     @ActiveUser('userId') userId: number
   ) {
     return this.locationService.deleteProvince({
-      id: params.id,
-      deletedById: userId
-    })
-  }
-
-  // ==================== ADMIN APIS - DISTRICTS ====================
-
-  @Get('admin/districts')
-  @ApiBearerAuth()
-  @ZodResponse({ type: GetDistrictsResDTO })
-  getDistrictsAdmin(@Query() query: PaginationQueryDTO) {
-    return this.locationService.listDistricts({
-      page: query.page,
-      limit: query.limit
-    })
-  }
-
-  @Get('admin/districts/:id')
-  @ApiBearerAuth()
-  @ZodResponse({ type: GetDistrictDetailResDTO })
-  getDistrictById(@Param() params: GetByIdParamsDTO) {
-    return this.locationService.findDistrictById(params.id)
-  }
-
-  @Post('admin/districts')
-  @ApiBearerAuth()
-  @ZodResponse({ type: GetDistrictDetailResDTO })
-  createDistrict(
-    @Body() body: CreateDistrictBodyDTO,
-    @ActiveUser('userId') userId: number
-  ) {
-    return this.locationService.createDistrict({
-      data: body,
-      createdById: userId
-    })
-  }
-
-  @Put('admin/districts/:id')
-  @ApiBearerAuth()
-  @ZodResponse({ type: GetDistrictDetailResDTO })
-  updateDistrict(
-    @Body() body: UpdateDistrictBodyDTO,
-    @Param() params: GetByIdParamsDTO,
-    @ActiveUser('userId') userId: number
-  ) {
-    return this.locationService.updateDistrict({
-      data: body,
-      id: params.id,
-      updatedById: userId
-    })
-  }
-
-  @Delete('admin/districts/:id')
-  @ApiBearerAuth()
-  @ZodResponse({ type: MessageResDTO })
-  deleteDistrict(
-    @Param() params: GetByIdParamsDTO,
-    @ActiveUser('userId') userId: number
-  ) {
-    return this.locationService.deleteDistrict({
       id: params.id,
       deletedById: userId
     })

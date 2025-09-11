@@ -19,25 +19,6 @@ export const ProvinceAlreadyExistsException = new UnprocessableEntityException([
   }
 ])
 
-// District Errors
-export const DistrictNotFoundException = new NotFoundException([
-  {
-    message: 'Error.DistrictNotFound',
-    path: 'id'
-  }
-])
-
-export const DistrictAlreadyExistsException = new UnprocessableEntityException([
-  {
-    message: 'Error.DistrictAlreadyExists',
-    path: 'name'
-  },
-  {
-    message: 'Error.DistrictCodeAlreadyExists',
-    path: 'code'
-  }
-])
-
 // Ward Errors
 export const WardNotFoundException = new NotFoundException([
   {

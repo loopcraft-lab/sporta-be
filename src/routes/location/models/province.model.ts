@@ -29,9 +29,9 @@ export const GetProvinceDetailResSchema = z.object({
   message: z.string()
 })
 
-// GET provinces with districts
-export const ProvinceWithDistrictsSchema = ProvinceSchema.extend({
-  districts: z
+// GET provinces with wards
+export const ProvinceWithWardsSchema = ProvinceSchema.extend({
+  wards: z
     .array(
       z.object({
         id: z.number(),
@@ -42,8 +42,8 @@ export const ProvinceWithDistrictsSchema = ProvinceSchema.extend({
     .optional()
 })
 
-export const GetProvinceWithDistrictsResSchema = z.object({
-  data: ProvinceWithDistrictsSchema,
+export const GetProvinceWithWardsResSchema = z.object({
+  data: ProvinceWithWardsSchema,
   message: z.string()
 })
 
@@ -58,11 +58,9 @@ export const UpdateProvinceBodySchema = CreateProvinceBodySchema.partial()
 
 //types
 export type ProvinceType = z.infer<typeof ProvinceSchema>
-export type ProvinceWithDistrictsType = z.infer<typeof ProvinceWithDistrictsSchema>
+export type ProvinceWithWardsType = z.infer<typeof ProvinceWithWardsSchema>
 export type GetProvincesResType = z.infer<typeof GetProvincesResSchema>
 export type GetProvinceDetailResType = z.infer<typeof GetProvinceDetailResSchema>
-export type GetProvinceWithDistrictsResType = z.infer<
-  typeof GetProvinceWithDistrictsResSchema
->
+export type GetProvinceWithWardsResType = z.infer<typeof GetProvinceWithWardsResSchema>
 export type CreateProvinceBodyType = z.infer<typeof CreateProvinceBodySchema>
 export type UpdateProvinceBodyType = z.infer<typeof UpdateProvinceBodySchema>

@@ -2,7 +2,7 @@ import {
   CreateProvinceBodySchema,
   GetProvinceDetailResSchema,
   GetProvincesResSchema,
-  GetProvinceWithDistrictsResSchema,
+  GetProvinceWithWardsResSchema,
   UpdateProvinceBodySchema
 } from '@/routes/location/models/province.model'
 import { createZodDto } from 'nestjs-zod'
@@ -11,8 +11,8 @@ export class GetProvincesResDTO extends createZodDto(GetProvincesResSchema) {}
 
 export class GetProvinceDetailResDTO extends createZodDto(GetProvinceDetailResSchema) {}
 
-export class GetProvinceWithDistrictsResDTO extends createZodDto(
-  GetProvinceWithDistrictsResSchema
+export class GetProvinceWithWardsResDTO extends createZodDto(
+  GetProvinceWithWardsResSchema
 ) {}
 
 export class CreateProvinceBodyDTO extends createZodDto(CreateProvinceBodySchema) {}

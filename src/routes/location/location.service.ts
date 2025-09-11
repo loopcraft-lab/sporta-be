@@ -1,16 +1,10 @@
 import {
-  DistrictAlreadyExistsException,
-  DistrictNotFoundException,
   ProvinceAlreadyExistsException,
   ProvinceNotFoundException,
   WardAlreadyExistsException,
   WardNotFoundException
 } from '@/routes/location/location.error'
 import { LocationRepository } from '@/routes/location/location.repository'
-import {
-  CreateDistrictBodyType,
-  UpdateDistrictBodyType
-} from '@/routes/location/models/district.model'
 import {
   CreateProvinceBodyType,
   UpdateProvinceBodyType
@@ -49,14 +43,14 @@ export class LocationService {
     }
   }
 
-  async findProvinceByIdWithDistricts(id: number) {
-    const province = await this.locationRepository.findProvinceByIdWithDistricts(id)
+  async findProvinceByIdWithWards(id: number) {
+    const province = await this.locationRepository.findProvinceByIdWithWards(id)
     if (!province) {
       throw ProvinceNotFoundException
     }
     return {
       data: province,
-      message: LOCATION_MESSAGE.PROVINCE_WITH_DISTRICTS_SUCCESS
+      message: LOCATION_MESSAGE.PROVINCE_WITH_WARDS_SUCCESS
     }
   }
 
@@ -131,117 +125,14 @@ export class LocationService {
     }
   }
 
-  // ==================== DISTRICT METHODS ====================
-
-  async listDistricts(pagination: PaginationQueryType) {
-    return this.locationRepository.listDistricts(pagination)
-  }
-
-  async listDistrictsByProvinceId(provinceId: number) {
-    return this.locationRepository.listDistrictsByProvinceId(provinceId)
-  }
-
-  async findDistrictById(id: number) {
-    const district = await this.locationRepository.findDistrictById(id)
-    if (!district) {
-      throw DistrictNotFoundException
-    }
-    return {
-      data: district,
-      message: LOCATION_MESSAGE.DISTRICT_DETAIL_SUCCESS
-    }
-  }
-
-  async findDistrictByIdWithWards(id: number) {
-    const district = await this.locationRepository.findDistrictByIdWithWards(id)
-    if (!district) {
-      throw DistrictNotFoundException
-    }
-    return {
-      data: district,
-      message: LOCATION_MESSAGE.DISTRICT_WITH_WARDS_SUCCESS
-    }
-  }
-
-  async createDistrict({
-    data,
-    createdById
-  }: {
-    data: CreateDistrictBodyType
-    createdById: number
-  }) {
-    try {
-      const district = await this.locationRepository.createDistrict({
-        createdById,
-        data
-      })
-      return {
-        data: district,
-        message: LOCATION_MESSAGE.DISTRICT_CREATE_SUCCESS
-      }
-    } catch (error) {
-      if (isUniqueConstraintPrismaError(error)) {
-        throw DistrictAlreadyExistsException
-      }
-      throw error
-    }
-  }
-
-  async updateDistrict({
-    id,
-    data,
-    updatedById
-  }: {
-    id: number
-    data: UpdateDistrictBodyType
-    updatedById: number
-  }) {
-    try {
-      const district = await this.locationRepository.updateDistrict({
-        id,
-        updatedById,
-        data
-      })
-      return {
-        data: district,
-        message: LOCATION_MESSAGE.DISTRICT_UPDATE_SUCCESS
-      }
-    } catch (error) {
-      if (isNotFoundPrismaError(error)) {
-        throw DistrictNotFoundException
-      }
-      if (isUniqueConstraintPrismaError(error)) {
-        throw DistrictAlreadyExistsException
-      }
-      throw error
-    }
-  }
-
-  async deleteDistrict({ id, deletedById }: { id: number; deletedById: number }) {
-    try {
-      await this.locationRepository.deleteDistrict({
-        id,
-        deletedById
-      })
-      return {
-        message: LOCATION_MESSAGE.DISTRICT_DELETE_SUCCESS
-      }
-    } catch (error) {
-      if (isNotFoundPrismaError(error)) {
-        throw DistrictNotFoundException
-      }
-      throw error
-    }
-  }
-
   // ==================== WARD METHODS ====================
 
   async listWards(pagination: PaginationQueryType) {
     return this.locationRepository.listWards(pagination)
   }
 
-  async listWardsByDistrictId(districtId: number) {
-    return this.locationRepository.listWardsByDistrictId(districtId)
+  async listWardsByProvinceId(provinceId: number) {
+    return this.locationRepository.listWardsByProvinceId(provinceId)
   }
 
   async findWardById(id: number) {

@@ -4,15 +4,14 @@ export const LocationSearchItemSchema = z.object({
   id: z.number(),
   name: z.string(),
   code: z.string(),
-  type: z.enum(['province', 'district', 'ward']),
+  type: z.enum(['province', 'ward']),
   fullPath: z.string(),
-  provinceId: z.number().optional(),
-  districtId: z.number().optional()
+  provinceId: z.number().optional()
 })
 
 export const LocationSearchQuerySchema = z.object({
   q: z.string().min(1).max(255),
-  type: z.enum(['province', 'district', 'ward', 'all']).optional().default('all'),
+  type: z.enum(['province', 'ward', 'all']).optional().default('all'),
   limit: z.coerce.number().int().min(1).max(50).optional().default(10)
 })
 
@@ -26,7 +25,7 @@ export const GetLocationSearchResSchema = z.object({
   })
 })
 
-// Bulk import schemas
+// Bulk import schemas (simplified - no districts)
 export const BulkImportLocationBodySchema = z.object({
   provinces: z
     .array(
@@ -37,22 +36,11 @@ export const BulkImportLocationBodySchema = z.object({
     )
     .optional()
     .default([]),
-  districts: z
-    .array(
-      z.object({
-        name: z.string().min(1).max(500),
-        code: z.string().min(1).max(10),
-        provinceCode: z.string().min(1).max(10)
-      })
-    )
-    .optional()
-    .default([]),
   wards: z
     .array(
       z.object({
         name: z.string().min(1).max(500),
         code: z.string().min(1).max(10),
-        districtCode: z.string().min(1).max(10),
         provinceCode: z.string().min(1).max(10)
       })
     )
@@ -63,10 +51,6 @@ export const BulkImportLocationBodySchema = z.object({
 export const BulkImportLocationResSchema = z.object({
   data: z.object({
     provinces: z.object({
-      created: z.number(),
-      skipped: z.number()
-    }),
-    districts: z.object({
       created: z.number(),
       skipped: z.number()
     }),
