@@ -42,12 +42,10 @@ const configSchema = z.object({
   GOOGLE_CLIENT_ID: z.string(),
   GOOGLE_CLIENT_SECRET: z.string(),
   GOOGLE_REDIRECT_URI: z.string(),
-  GOOGLE_CLIENT_REDIRECT_URI: z.string()
-  // //AWS S3
-  // S3_REGION: z.string(),
-  // S3_ACCESS_KEY: z.string(),
-  // S3_SECRET_KEY: z.string(),
-  // S3_BUCKET_NAME: z.string(),
+  GOOGLE_CLIENT_REDIRECT_URI: z.string(),
+  //Media
+  MAX_FILE_SIZE_BYTES: z.coerce.number().default(10 * 1024 * 1024), //10MB
+  MAX_FILES_UPLOAD: z.coerce.number().default(10)
   // //PayOS
   // PAYOS_API_KEY: z.string(),
   // PAYOS_CLIENT_ID: z.string(),

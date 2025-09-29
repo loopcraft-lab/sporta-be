@@ -6,6 +6,7 @@ import { TwoFactorService } from '@/shared/services/2fa.service'
 import { EmailService } from '@/shared/services/email.service'
 import { HashingService } from '@/shared/services/hashing.service'
 import { PrismaService } from '@/shared/services/prisma.service'
+import { RedisService } from '@/shared/services/redis.service'
 import { TokenService } from '@/shared/services/token.service'
 import { Global, Module } from '@nestjs/common'
 import { APP_GUARD } from '@nestjs/core'
@@ -17,6 +18,7 @@ const sharedServices = [
   EmailService,
   HashingService,
   TwoFactorService,
+  RedisService,
   SharedUserRepository,
   SharedRoleRepository
 ]

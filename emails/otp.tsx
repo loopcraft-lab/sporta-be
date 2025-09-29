@@ -49,7 +49,7 @@ export const OTPEmail = ({ otpCode, title }: OTPEmailProps) => (
             Gửi từ <strong>Sporta</strong> với ❤️
           </Text>
           <Text style={footerSubtext}>
-            © 2024 Sporta. Tất cả quyền được bảo lưu.
+            © 2025 Sporta. Tất cả quyền được bảo lưu.
           </Text>
         </Section>
       </Container>
