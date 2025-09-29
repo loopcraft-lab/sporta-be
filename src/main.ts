@@ -2,10 +2,12 @@ import envConfig from '@/config/env.config'
 import setupSwagger from '@/config/swagger.config'
 import { RequestMethod, VersioningType } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
+import { NestExpressApplication } from '@nestjs/platform-express'
+import path from 'path'
 import { AppModule } from './app.module'
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule)
+  const app = await NestFactory.create<NestExpressApplication>(AppModule)
 
   const corsOrigin = envConfig.APP_CORS_ORIGIN
   app.enableCors({
@@ -27,6 +29,11 @@ async function bootstrap() {
   //version
   app.enableVersioning({
     type: VersioningType.URI
+  })
+
+  //serve static uploads
+  app.useStaticAssets(path.resolve('uploads'), {
+    prefix: '/uploads/'
   })
 
   //swagger
