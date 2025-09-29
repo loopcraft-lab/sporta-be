@@ -1,4 +1,3 @@
-import envConfig from '@/config/env.config'
 import {
   EmailAlreadyExistsException,
   EmailNotFoundException,
@@ -6,7 +5,6 @@ import {
   InvalidOTPException,
   InvalidTOTPAndCodeException,
   InvalidTOTPException,
-  OTPExpiredException,
   RefreshTokenAlreadyUsedException,
   TOTPAlreadyEnabledException,
   TOTPNotEnabledException
@@ -20,10 +18,8 @@ import {
   SendOTPBodyType
 } from '@/routes/auth/auth.model'
 import { AuthRepository } from '@/routes/auth/auth.repository'
-import {
-  TypeOfVerificationCode,
-  TypeOfVerificationCodeType
-} from '@/shared/constants/auth.constant'
+import { OtpService } from '@/routes/auth/otp.service'
+import { TypeOfVerificationCode } from '@/shared/constants/auth.constant'
 import { InvalidPasswordException } from '@/shared/error'
 import {
   generateOTP,
@@ -39,8 +35,6 @@ import { HashingService } from '@/shared/services/hashing.service'
 import { TokenService } from '@/shared/services/token.service'
 import { AccessTokenPayloadCreate } from '@/shared/types/jwt.type'
 import { HttpException, Injectable } from '@nestjs/common'
-import { addMilliseconds } from 'date-fns'
-import ms from 'ms'
 import { UnauthorizedAccessException } from './auth.error'
 
 @Injectable()
@@ -52,32 +46,9 @@ export class AuthService {
     private readonly sharedRoleRepository: SharedRoleRepository,
     private readonly hashingService: HashingService,
     private readonly tokenService: TokenService,
-    private readonly twoFactorService: TwoFactorService
+    private readonly twoFactorService: TwoFactorService,
+    private readonly otpService: OtpService
   ) {}
-
-  async validateVerificationCode({
-    email,
-    type,
-    code
-  }: {
-    email: string
-    type: TypeOfVerificationCodeType
-    code: string
-  }) {
-    const verificationCode = await this.authRepository.findUniqueVerificationCode({
-      email_type: {
-        email,
-        type
-      }
-    })
-    if (!verificationCode || verificationCode.code !== code) {
-      throw InvalidOTPException
-    }
-    if (new Date(verificationCode.expiresAt) < new Date()) {
-      throw OTPExpiredException
-    }
-    return verificationCode
-  }
 
   async sendOTP(body: SendOTPBodyType) {
     const user = await this.sharedUserRepository.findUnique({
@@ -91,11 +62,10 @@ export class AuthService {
     }
     // 2. Tạo mã OTP
     const code = generateOTP()
-    await this.authRepository.createVerificationCode({
-      email: body.email,
-      code,
-      type: body.type,
-      expiresAt: addMilliseconds(new Date(), ms(envConfig.OTP_EXPIRES_IN)).toISOString()
+    await this.otpService.issue({
+      purpose: body.type,
+      identifier: body.email,
+      code
     })
     // 3. Gửi mã OTP
     const { error } = await this.emailService.sendOTP({
@@ -143,11 +113,14 @@ export class AuthService {
         }
       } else if (body.code) {
         // Kiểm tra mã OTP có hợp lệ không
-        await this.validateVerificationCode({
-          email: user.email,
-          type: TypeOfVerificationCode.LOGIN,
+        const ok = await this.otpService.verify({
+          purpose: TypeOfVerificationCode.LOGIN,
+          identifier: user.email,
           code: body.code
         })
+        if (!ok) {
+          throw InvalidOTPException
+        }
       }
     }
 
@@ -166,11 +139,12 @@ export class AuthService {
   async register(body: RegisterBodyType) {
     try {
       let roleId: number
-      await this.validateVerificationCode({
-        email: body.email,
-        type: TypeOfVerificationCode.REGISTER,
+      const ok = await this.otpService.verify({
+        purpose: TypeOfVerificationCode.REGISTER,
+        identifier: body.email,
         code: body.code
       })
+      if (!ok) throw InvalidOTPException
       if (body.isOwner) {
         roleId = await this.sharedRoleRepository.getOwnerRoleId()
       } else {
@@ -185,12 +159,7 @@ export class AuthService {
           password: hashedPassword,
           roleId
         }),
-        this.authRepository.deleteVerificationCode({
-          email_type: {
-            email: body.email,
-            type: TypeOfVerificationCode.REGISTER
-          }
-        })
+        this.otpService.invalidate(TypeOfVerificationCode.REGISTER, body.email)
       ])
       return {
         message: AUTH_MESSAGE.REGISTER_SUCCESS
@@ -265,11 +234,12 @@ export class AuthService {
     if (!user) {
       throw EmailNotFoundException
     }
-    await this.validateVerificationCode({
-      email,
-      type: TypeOfVerificationCode.FORGOT_PASSWORD,
+    const ok = await this.otpService.verify({
+      purpose: TypeOfVerificationCode.FORGOT_PASSWORD,
+      identifier: email,
       code
     })
+    if (!ok) throw InvalidOTPException
     const hashedPassword = await this.hashingService.hash(newPassword)
     await Promise.all([
       this.sharedUserRepository.update(
@@ -279,12 +249,7 @@ export class AuthService {
           updatedById: user.id
         }
       ),
-      this.authRepository.deleteVerificationCode({
-        email_type: {
-          email: body.email,
-          type: TypeOfVerificationCode.FORGOT_PASSWORD
-        }
-      })
+      this.otpService.invalidate(TypeOfVerificationCode.FORGOT_PASSWORD, email)
     ])
     return {
       message: AUTH_MESSAGE.FORGOT_PASSWORD_SUCCESS
@@ -363,11 +328,12 @@ export class AuthService {
       }
     } else if (code) {
       // 3. Kiểm tra mã OTP email có hợp lệ hay không
-      await this.validateVerificationCode({
-        email: user.email,
-        type: TypeOfVerificationCode.DISABLE_2FA,
+      const ok = await this.otpService.verify({
+        purpose: TypeOfVerificationCode.DISABLE_2FA,
+        identifier: user.email,
         code
       })
+      if (!ok) throw InvalidOTPException
     }
 
     // 4. Cập nhật secret thành null

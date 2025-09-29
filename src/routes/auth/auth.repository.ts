@@ -1,8 +1,7 @@
-import { RefreshTokenType, VerificationCodeType } from '@/routes/auth/auth.model'
+import { RefreshTokenType } from '@/routes/auth/auth.model'
 import { SerializeAll } from '@/shared/decorators/serialize.decorator'
 import { WhereUniqueUserType } from '@/shared/repositories/shared-user.repository'
 import { Injectable } from '@nestjs/common'
-import { TypeOfVerificationCodeType } from 'src/shared/constants/auth.constant'
 import { RoleType } from 'src/shared/models/shared-role.model'
 import { UserType } from 'src/shared/models/shared-user.model'
 import { PrismaService } from 'src/shared/services/prisma.service'
@@ -35,39 +34,6 @@ export class AuthRepository {
       include: {
         role: true
       }
-    }) as any
-  }
-
-  createVerificationCode(
-    payload: Pick<VerificationCodeType, 'email' | 'type' | 'code' | 'expiresAt'>
-  ): Promise<VerificationCodeType> {
-    return this.prismaService.verificationCode.upsert({
-      where: {
-        email_type: {
-          email: payload.email,
-          type: payload.type
-        }
-      },
-      create: payload,
-      update: {
-        code: payload.code,
-        expiresAt: payload.expiresAt
-      }
-    }) as any
-  }
-
-  findUniqueVerificationCode(
-    uniqueValue:
-      | { id: number }
-      | {
-          email_type: {
-            email: string
-            type: TypeOfVerificationCodeType
-          }
-        }
-  ): Promise<VerificationCodeType | null> {
-    return this.prismaService.verificationCode.findUnique({
-      where: uniqueValue
     }) as any
   }
 
@@ -109,21 +75,6 @@ export class AuthRepository {
   deleteRefreshToken(where: { token: string }): Promise<RefreshTokenType> {
     return this.prismaService.refreshToken.delete({
       where
-    }) as any
-  }
-
-  deleteVerificationCode(
-    uniqueValue:
-      | { id: number }
-      | {
-          email_type: {
-            email: string
-            type: TypeOfVerificationCodeType
-          }
-        }
-  ): Promise<VerificationCodeType> {
-    return this.prismaService.verificationCode.delete({
-      where: uniqueValue
     }) as any
   }
 }
