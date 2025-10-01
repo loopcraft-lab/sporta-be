@@ -32,26 +32,35 @@ model User {
   createdBy    User?  @relation("CreatorUsers", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: NoAction)
   createdUsers User[] @relation("CreatorUsers")
 
-  updatedById      Int?
-  updatedBy        User?      @relation("UpdatorUsers", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  updatedUsers     User[]     @relation("UpdatorUsers")
-  deletedById      Int?
-  deletedBy        User?      @relation("DeletorUsers", fields: [deletedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  deletedUsers     User[]     @relation("DeletorUsers")
-  business         Business?  @relation("BusinessUser")
-  approvedBusiness Business[] @relation("BusinessApprovedBy")
-  createdBusiness  Business[] @relation("BusinessCreatedBy")
-  updatedBusiness  Business[] @relation("BusinessUpdatedBy")
-  deletedBusiness  Business[] @relation("BusinessDeletedBy")
-  createdSport     Sport[]    @relation("SportCreatedBy")
-  updatedSport     Sport[]    @relation("SportUpdatedBy")
-  deletedSport     Sport[]    @relation("SportDeletedBy")
-  createdProvince  Province[] @relation("ProvinceCreatedBy")
-  updatedProvince  Province[] @relation("ProvinceUpdatedBy")
-  deletedProvince  Province[] @relation("ProvinceDeletedBy")
-  createdWard      Ward[]     @relation("WardCreatedBy")
-  updatedWard      Ward[]     @relation("WardUpdatedBy")
-  deletedWard      Ward[]     @relation("WardDeletedBy")
+  updatedById        Int?
+  updatedBy          User?        @relation("UpdatorUsers", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  updatedUsers       User[]       @relation("UpdatorUsers")
+  deletedById        Int?
+  deletedBy          User?        @relation("DeletorUsers", fields: [deletedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  deletedUsers       User[]       @relation("DeletorUsers")
+  business           VenueOwner?  @relation("VenueOwnerUser")
+  approvedVenueOwner VenueOwner[] @relation("VenueOwnerApprovedBy")
+  createdVenueOwner  VenueOwner[] @relation("VenueOwnerCreatedBy")
+  updatedVenueOwner  VenueOwner[] @relation("VenueOwnerUpdatedBy")
+  deletedVenueOwner  VenueOwner[] @relation("VenueOwnerDeletedBy")
+  createdSport       Sport[]      @relation("SportCreatedBy")
+  updatedSport       Sport[]      @relation("SportUpdatedBy")
+  deletedSport       Sport[]      @relation("SportDeletedBy")
+  createdProvince    Province[]   @relation("ProvinceCreatedBy")
+  updatedProvince    Province[]   @relation("ProvinceUpdatedBy")
+  deletedProvince    Province[]   @relation("ProvinceDeletedBy")
+  createdWard        Ward[]       @relation("WardCreatedBy")
+  updatedWard        Ward[]       @relation("WardUpdatedBy")
+  deletedWard        Ward[]       @relation("WardDeletedBy")
+  createdAmenity     Amenity[]    @relation("AmenityCreatedBy")
+  updatedAmenity     Amenity[]    @relation("AmenityUpdatedBy")
+  deletedAmenity     Amenity[]    @relation("AmenityDeletedBy")
+  createdCourt       Court[]      @relation("CourtCreatedBy")
+  updatedCourt       Court[]      @relation("CourtUpdatedBy")
+  deletedCourt       Court[]      @relation("CourtDeletedBy")
+  createdVenueImage  VenueImage[] @relation("VenueImageCreatedBy")
+  updatedVenueImage  VenueImage[] @relation("VenueImageUpdatedBy")
+  deletedVenueImage  VenueImage[] @relation("VenueImageDeletedBy")
 
   deletedAt DateTime?
   createdAt DateTime  @default(now())
@@ -113,32 +122,6 @@ model Role {
   @@index([deletedAt])
 }
 
-model Business {
-  userId       Int                      @unique
-  name         String                   @db.VarChar(500)
-  license      String?                  @db.VarChar(500)
-  bankName     String?                  @db.VarChar(500)
-  bankNumber   String?                  @db.VarChar(500)
-  verified     BusinessVerificationType @default(PENDING)
-  approvedById Int?
-  rejectReason String?                  @db.VarChar(1000)
-
-  user       User  @relation("BusinessUser", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  approvedBy User? @relation("BusinessApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
-
-  createdById Int?
-  createdBy   User?     @relation("BusinessCreatedBy", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  updatedById Int?
-  updatedBy   User?     @relation("BusinessUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  deletedById Int?
-  deletedBy   User?     @relation("BusinessDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  deletedAt   DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  @@index([deletedAt])
-}
-
 model Sport {
   id          Int            @id @default(autoincrement())
   name        String         @db.VarChar(500)
@@ -147,15 +130,18 @@ model Sport {
   status      SportStatus    @default(INACTIVE)
   popularity  SportProfile[]
 
-  createdById Int?
-  createdBy   User?     @relation("SportCreatedBy", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  updatedById Int?
-  updatedBy   User?     @relation("SportUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  deletedById Int?
-  deletedBy   User?     @relation("SportDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  deletedAt   DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdById  Int?
+  createdBy    User?       @relation("SportCreatedBy", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  updatedById  Int?
+  updatedBy    User?       @relation("SportUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  deletedById  Int?
+  deletedBy    User?       @relation("SportDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  deletedAt    DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  VenueOwner   VenueOwner? @relation(fields: [venueOwnerId], references: [id])
+  venueOwnerId Int?
+  Court        Court[]
 
   @@index([deletedAt])
 }
@@ -171,6 +157,121 @@ model SportProfile {
   @@unique([userId, sportId])
 }
 
+model VenueOwner {
+  id           Int                        @id @default(autoincrement())
+  userId       Int                        @unique
+  user         User                       @relation("VenueOwnerUser", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  name         String                     @db.VarChar(500)
+  license      String?                    @db.VarChar(500)
+  bankName     String?                    @db.VarChar(500)
+  bankNumber   String?                    @db.VarChar(500)
+  address      String?                    @db.VarChar(1000)
+  provinceId   Int?
+  wardId       Int?
+  verified     VenueOwnerVerificationType @default(PENDING)
+  approvedById Int?
+  approvedBy   User?                      @relation("VenueOwnerApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  rejectReason String?                    @db.VarChar(1000)
+
+  createdById Int?
+  createdBy   User?     @relation("VenueOwnerCreatedBy", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  updatedById Int?
+  updatedBy   User?     @relation("VenueOwnerUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  deletedById Int?
+  deletedBy   User?     @relation("VenueOwnerDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  Court       Court[]
+  Sport       Sport[]
+
+  @@index([deletedAt])
+}
+
+model Court {
+  id           Int         @id @default(autoincrement())
+  venueOwnerId Int
+  venueOwner   VenueOwner  @relation(fields: [venueOwnerId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  sportId      Int
+  sport        Sport       @relation(fields: [sportId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  name         String?     @db.VarChar(500)
+  description  String?     @db.VarChar(1000)
+  capacity     Int?        @default(0)
+  surface      String?     @db.VarChar(500)
+  indoor       Boolean?    @default(false)
+  status       CourtStatus @default(INACTIVE)
+
+  amenities CourtAmenity[]
+  images    VenueImage[]
+
+  createdById Int?
+  createdBy   User?     @relation("CourtCreatedBy", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  updatedById Int?
+  updatedBy   User?     @relation("CourtUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  deletedById Int?
+  deletedBy   User?     @relation("CourtDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([deletedAt])
+}
+
+model Amenity {
+  id          Int            @id @default(autoincrement())
+  name        String         @db.VarChar(500)
+  description String?        @db.VarChar(1000)
+  imageUrl    String?        @db.VarChar(1000)
+  isActive    Boolean        @default(true)
+  courts      CourtAmenity[]
+
+  createdById Int?
+  createdBy   User?     @relation("AmenityCreatedBy", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  updatedById Int?
+  updatedBy   User?     @relation("AmenityUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  deletedById Int?
+  deletedBy   User?     @relation("AmenityDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([deletedAt])
+}
+
+model CourtAmenity {
+  id        Int @id @default(autoincrement())
+  courtId   Int
+  amenityId Int
+
+  court   Court   @relation(fields: [courtId], references: [id])
+  amenity Amenity @relation(fields: [amenityId], references: [id])
+
+  @@unique([courtId, amenityId])
+}
+
+model VenueImage {
+  id      Int   @id @default(autoincrement())
+  courtId Int
+  court   Court @relation(fields: [courtId], references: [id])
+
+  url     String
+  caption String?
+  order   Int     @default(0)
+
+  createdById Int?
+  createdBy   User?     @relation("VenueImageCreatedBy", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  updatedById Int?
+  updatedBy   User?     @relation("VenueImageUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  deletedById Int?
+  deletedBy   User?     @relation("VenueImageDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([deletedAt])
+}
+
+//location
 model Province {
   id   Int    @id @default(autoincrement())
   name String @db.VarChar(500)
@@ -235,13 +336,18 @@ enum VerificationCodeType {
   WITHDRAW_MONEY
 }
 
-enum BusinessVerificationType {
+enum VenueOwnerVerificationType {
   PENDING
   VERIFIED
   REJECTED
 }
 
 enum SportStatus {
+  INACTIVE
+  ACTIVE
+}
+
+enum CourtStatus {
   INACTIVE
   ACTIVE
 }
