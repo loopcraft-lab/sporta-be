@@ -15,6 +15,7 @@ import { RoleModule } from './routes/role/role.module'
 import { SportProfileModule } from './routes/sport-profile/sport-profile.module'
 import { SportModule } from './routes/sport/sport.module'
 import { UserModule } from './routes/user/user.module'
+import { VenueImageModule } from './routes/venue-image/venue-image.module'
 import { VenueOwnerModule } from './routes/venue-owner/venue-owner.module'
 import { SharedModule } from './shared/shared.module'
 
@@ -42,6 +43,7 @@ import { SharedModule } from './shared/shared.module'
     SportProfileModule,
     LocationModule,
     MediaModule,
+    VenueImageModule,
     VenueOwnerModule
   ],
   controllers: [],
