@@ -7,7 +7,10 @@ import { CacheModule } from '@nestjs/cache-manager'
 import { Module } from '@nestjs/common'
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
 import { ZodSerializerInterceptor } from 'nestjs-zod'
+import { AmenityModule } from './routes/amenity/amenity.module'
 import { AuthModule } from './routes/auth/auth.module'
+import { CourtAmenityModule } from './routes/court-amenity/court-amenity.module'
+import { CourtModule } from './routes/court/court.module'
 import { LocationModule } from './routes/location/location.module'
 import { MediaModule } from './routes/media/media.module'
 import { PermissionModule } from './routes/permission/permission.module'
@@ -15,6 +18,7 @@ import { RoleModule } from './routes/role/role.module'
 import { SportProfileModule } from './routes/sport-profile/sport-profile.module'
 import { SportModule } from './routes/sport/sport.module'
 import { UserModule } from './routes/user/user.module'
+import { VenueImageModule } from './routes/venue-image/venue-image.module'
 import { VenueOwnerModule } from './routes/venue-owner/venue-owner.module'
 import { SharedModule } from './shared/shared.module'
 
@@ -42,7 +46,11 @@ import { SharedModule } from './shared/shared.module'
     SportProfileModule,
     LocationModule,
     MediaModule,
-    VenueOwnerModule
+    VenueImageModule,
+    VenueOwnerModule,
+    AmenityModule,
+    CourtAmenityModule,
+    CourtModule
   ],
   controllers: [],
   providers: [
