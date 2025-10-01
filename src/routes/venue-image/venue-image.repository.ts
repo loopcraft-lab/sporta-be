@@ -1,4 +1,5 @@
 import { SerializeAll } from '@/shared/decorators/serialize.decorator'
+import { NotFoundRecordException } from '@/shared/error'
 import { VENUE_IMAGE_MESSAGE } from '@/shared/messages/venue-image.message'
 import { PaginationQueryType } from '@/shared/models/request.model'
 import { PrismaService } from '@/shared/services/prisma.service'
@@ -20,13 +21,18 @@ export class VenueImageRepository {
     pagination: PaginationQueryType,
     filter?: { courtId?: number }
   ): Promise<GetVenueImagesResType> {
-    const where: any = { deletedAt: null }
+    const where: any = { deletedAt: null, court: { deletedAt: null } }
     if (filter?.courtId) where.courtId = filter.courtId
     const skip = (pagination.page - 1) * pagination.limit
     const take = pagination.limit
     const [totalItems, data] = await Promise.all([
       this.prisma.venueImage.count({ where }),
-      this.prisma.venueImage.findMany({ where, skip, take, orderBy: { order: 'asc' } })
+      this.prisma.venueImage.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { order: 'asc' }
+      })
     ])
     return {
       data,
@@ -46,19 +52,23 @@ export class VenueImageRepository {
     }) as any
   }
 
-  create({
+  async create({
     data,
     createdById
   }: {
     data: CreateVenueImageBodyType
     createdById: number
   }): Promise<VenueImageType> {
-    return this.prisma.venueImage.create({
+    const court = await this.prisma.court.findFirst({
+      where: { id: data.courtId, deletedAt: null }
+    })
+    if (!court) throw NotFoundRecordException
+    return (await this.prisma.venueImage.create({
       data: { ...data, createdById }
-    }) as any
+    })) as any
   }
 
-  update({
+  async update({
     id,
     data,
     updatedById
@@ -67,6 +77,12 @@ export class VenueImageRepository {
     data: UpdateVenueImageBodyType
     updatedById: number
   }): Promise<VenueImageType> {
+    if (data.courtId) {
+      const court = await this.prisma.court.findFirst({
+        where: { id: data.courtId, deletedAt: null }
+      })
+      if (!court) throw NotFoundRecordException
+    }
     return this.prisma.venueImage.update({
       where: { id, deletedAt: null },
       data: { ...data, updatedById }

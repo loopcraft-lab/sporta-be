@@ -10,6 +10,7 @@ import { ZodSerializerInterceptor } from 'nestjs-zod'
 import { AmenityModule } from './routes/amenity/amenity.module'
 import { AuthModule } from './routes/auth/auth.module'
 import { CourtAmenityModule } from './routes/court-amenity/court-amenity.module'
+import { CourtModule } from './routes/court/court.module'
 import { LocationModule } from './routes/location/location.module'
 import { MediaModule } from './routes/media/media.module'
 import { PermissionModule } from './routes/permission/permission.module'
@@ -48,7 +49,8 @@ import { SharedModule } from './shared/shared.module'
     VenueImageModule,
     VenueOwnerModule,
     AmenityModule,
-    CourtAmenityModule
+    CourtAmenityModule,
+    CourtModule
   ],
   controllers: [],
   providers: [

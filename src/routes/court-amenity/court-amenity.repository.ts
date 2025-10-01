@@ -1,4 +1,5 @@
 import { SerializeAll } from '@/shared/decorators/serialize.decorator'
+import { NotFoundRecordException } from '@/shared/error'
 import { COURT_AMENITY_MESSAGE } from '@/shared/messages/court-amenity.message'
 import { PrismaService } from '@/shared/services/prisma.service'
 import { Injectable } from '@nestjs/common'
@@ -15,6 +16,10 @@ export class CourtAmenityRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async list(courtId: number): Promise<GetCourtAmenitiesResType> {
+    const court = await this.prisma.court.findFirst({
+      where: { id: courtId, deletedAt: null }
+    })
+    if (!court) throw NotFoundRecordException
     const data = await this.prisma.courtAmenity.findMany({
       where: { courtId },
       orderBy: { id: 'asc' }
@@ -22,7 +27,15 @@ export class CourtAmenityRepository {
     return { data, message: COURT_AMENITY_MESSAGE.LIST_SUCCESS } as any
   }
 
-  attach({ courtId, amenityId }: AttachCourtAmenityBodyType): Promise<CourtAmenityType> {
+  async attach({
+    courtId,
+    amenityId
+  }: AttachCourtAmenityBodyType): Promise<CourtAmenityType> {
+    const [court, amenity] = await Promise.all([
+      this.prisma.court.findFirst({ where: { id: courtId, deletedAt: null } }),
+      this.prisma.amenity.findFirst({ where: { id: amenityId, deletedAt: null } })
+    ])
+    if (!court || !amenity) throw NotFoundRecordException
     return this.prisma.courtAmenity.create({
       data: { courtId, amenityId }
     }) as any
@@ -37,8 +50,17 @@ export class CourtAmenityRepository {
   }
 
   async bulkSet({ courtId, amenityIds }: BulkSetCourtAmenitiesBodyType) {
+    const court = await this.prisma.court.findFirst({
+      where: { id: courtId, deletedAt: null }
+    })
+    if (!court) throw NotFoundRecordException
+    if (amenityIds.length) {
+      const amenities = await this.prisma.amenity.findMany({
+        where: { id: { in: amenityIds }, deletedAt: null }
+      })
+      if (amenities.length !== amenityIds.length) throw NotFoundRecordException
+    }
     return this.prisma.$transaction(async (tx) => {
-      // Delete those not in amenityIds
       await tx.courtAmenity.deleteMany({
         where: {
           courtId,

@@ -11,7 +11,8 @@ const ModeratorModule = [
   'VENUE-OWNER',
   'VENUE-IMAGE',
   'AMENITY',
-  'COURT-AMENITY'
+  'COURT-AMENITY',
+  'COURT'
 ]
 const ClientModule = [
   'AUTH',
@@ -20,7 +21,8 @@ const ClientModule = [
   'MEDIA',
   'VENUE-OWNER',
   'VENUE-IMAGE',
-  'AMENITY'
+  'AMENITY',
+  'COURT'
 ]
 const OwnerModule = [
   'AUTH',
@@ -31,7 +33,8 @@ const OwnerModule = [
   'VENUE-OWNER',
   'VENUE-IMAGE',
   'AMENITY',
-  'COURT-AMENITY'
+  'COURT-AMENITY',
+  'COURT'
 ]
 const prisma = new PrismaService()
 
