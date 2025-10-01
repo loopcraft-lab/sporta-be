@@ -15,6 +15,7 @@ import { RoleModule } from './routes/role/role.module'
 import { SportProfileModule } from './routes/sport-profile/sport-profile.module'
 import { SportModule } from './routes/sport/sport.module'
 import { UserModule } from './routes/user/user.module'
+import { VenueOwnerModule } from './routes/venue-owner/venue-owner.module'
 import { SharedModule } from './shared/shared.module'
 
 @Module({
@@ -40,7 +41,8 @@ import { SharedModule } from './shared/shared.module'
     SportModule,
     SportProfileModule,
     LocationModule,
-    MediaModule
+    MediaModule,
+    VenueOwnerModule
   ],
   controllers: [],
   providers: [
