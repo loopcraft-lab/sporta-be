@@ -54,6 +54,8 @@ async function bootstrap() {
 `)
 
   console.info(`Server running on ${await app.getUrl()}`)
+  console.info(`Swagger docs on ${await app.getUrl()}/api-docs`)
+  console.info(`Type: npx prisma studio - to run prisma studio`)
 
   return app
 }
