@@ -3,7 +3,8 @@ import {
   CreateVenueOwnerBodySchema,
   GetVenueOwnerDetailResSchema,
   GetVenueOwnersResSchema,
-  UpdateVenueOwnerBodySchema
+  UpdateVenueOwnerBodySchema,
+  VenueOwnerListQuerySchema
 } from '@/routes/venue-owner/venue-owner.model'
 import { createZodDto } from 'nestjs-zod'
 
@@ -14,3 +15,4 @@ export class GetVenueOwnerDetailResDTO extends createZodDto(
 export class CreateVenueOwnerBodyDTO extends createZodDto(CreateVenueOwnerBodySchema) {}
 export class UpdateVenueOwnerBodyDTO extends createZodDto(UpdateVenueOwnerBodySchema) {}
 export class ApproveVenueOwnerBodyDTO extends createZodDto(ApproveVenueOwnerBodySchema) {}
+export class VenueOwnerListQueryDTO extends createZodDto(VenueOwnerListQuerySchema) {}

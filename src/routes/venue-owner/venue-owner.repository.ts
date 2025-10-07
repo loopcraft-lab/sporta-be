@@ -8,6 +8,7 @@ import {
   CreateVenueOwnerBodyType,
   GetVenueOwnersResType,
   UpdateVenueOwnerBodyType,
+  VenueOwnerListQueryType,
   VenueOwnerType
 } from './venue-owner.model'
 
@@ -16,21 +17,83 @@ import {
 export class VenueOwnerRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async list(pagination: PaginationQueryType): Promise<GetVenueOwnersResType> {
+  async list(
+    pagination: PaginationQueryType,
+    filter?: VenueOwnerListQueryType
+  ): Promise<GetVenueOwnersResType> {
     const skip = (pagination.page - 1) * pagination.limit
     const take = pagination.limit
+
+    // Build where clause
+    const where: any = { deletedAt: null }
+
+    // Filter by verification status
+    if (filter?.verified) {
+      where.verified = filter.verified
+    }
+
+    // Search by name or license
+    if (filter?.search) {
+      where.OR = [
+        { name: { contains: filter.search, mode: 'insensitive' } },
+        { license: { contains: filter.search, mode: 'insensitive' } }
+      ]
+    }
+
     const [totalItems, data] = await Promise.all([
-      this.prismaService.venueOwner.count({
-        where: { deletedAt: null }
-      }),
+      this.prismaService.venueOwner.count({ where }),
       this.prismaService.venueOwner.findMany({
-        where: { deletedAt: null },
+        where,
         skip,
-        take
+        take,
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              phoneNumber: true
+            }
+          },
+          approvedBy: {
+            select: {
+              id: true,
+              name: true,
+              email: true
+            }
+          }
+        },
+        // FIX: Sort để PENDING lên đầu tiên
+        orderBy: [
+          // PENDING lên đầu
+          {
+            verified: 'asc'
+          },
+          // Trong PENDING: cũ nhất lên trước (FIFO - First In First Out)
+          {
+            createdAt: 'asc'
+          }
+        ]
       })
     ])
+
+    // Additional sort để đảm bảo PENDING luôn ở đầu
+    const sortedData = data.sort((a, b) => {
+      // Priority 1: PENDING always first
+      if (a.verified === 'PENDING' && b.verified !== 'PENDING') return -1
+      if (a.verified !== 'PENDING' && b.verified === 'PENDING') return 1
+
+      // Priority 2: Trong PENDING - đăng ký trước lên trước
+      if (a.verified === 'PENDING' && b.verified === 'PENDING') {
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      }
+
+      // Priority 3: Trong VERIFIED/REJECTED - mới nhất lên trước
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    })
+
     return {
-      data,
+      data: sortedData,
       meta: {
         totalItems,
         page: pagination.page,
@@ -43,7 +106,30 @@ export class VenueOwnerRepository {
 
   findById(id: number): Promise<VenueOwnerType | null> {
     return this.prismaService.venueOwner.findUnique({
-      where: { id, deletedAt: null }
+      where: { id, deletedAt: null },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phoneNumber: true
+          }
+        },
+        approvedBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
+      }
+    }) as any
+  }
+
+  findByUserId(userId: number): Promise<VenueOwnerType | null> {
+    return this.prismaService.venueOwner.findUnique({
+      where: { userId, deletedAt: null }
     }) as any
   }
 
@@ -56,15 +142,26 @@ export class VenueOwnerRepository {
   update({
     id,
     data,
-    updatedById
+    updatedById,
+    resetToPending = false
   }: {
     id: number
     data: UpdateVenueOwnerBodyType
     updatedById: number
+    resetToPending?: boolean
   }) {
     return this.prismaService.venueOwner.update({
       where: { id, deletedAt: null },
-      data: { ...data, updatedById }
+      data: {
+        ...data,
+        updatedById,
+        // FIX: Nếu resetToPending = true, set verified về PENDING và clear rejectReason
+        ...(resetToPending && {
+          verified: 'PENDING',
+          rejectReason: null,
+          approvedById: null
+        })
+      }
     }) as any
   }
 
@@ -80,8 +177,18 @@ export class VenueOwnerRepository {
     return this.prismaService.venueOwner.update({
       where: { id, deletedAt: null },
       data: body.approve
-        ? { verified: 'VERIFIED', rejectReason: null, approvedById }
-        : { verified: 'REJECTED', rejectReason: body.rejectReason, approvedById }
+        ? {
+            verified: 'VERIFIED',
+            rejectReason: null,
+            approvedById,
+            updatedById: approvedById
+          }
+        : {
+            verified: 'REJECTED',
+            rejectReason: body.rejectReason!,
+            approvedById,
+            updatedById: approvedById
+          }
     }) as any
   }
 

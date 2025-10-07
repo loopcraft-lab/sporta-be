@@ -51,18 +51,40 @@ export const CreateVenueOwnerBodySchema = VenueOwnerSchema.pick({
 
 export const UpdateVenueOwnerBodySchema = CreateVenueOwnerBodySchema.partial()
 
+// FIX: Approve schema với validation rõ ràng hơn
 export const ApproveVenueOwnerBodySchema = z
   .object({
     approve: z.boolean(),
-    rejectReason: z.string().max(1000).nullable().optional()
+    rejectReason: z.string().min(1).max(1000).optional()
   })
-  .refine(
-    (data) => {
-      if (data.approve) return true
-      return !!data.rejectReason
-    },
-    { message: 'Reject reason required when rejecting', path: ['rejectReason'] }
-  )
+  .strict()
+  .superRefine((data, ctx) => {
+    // Nếu approve = false (REJECT) thì BẮT BUỘC phải có rejectReason
+    if (data.approve === false) {
+      if (!data.rejectReason || data.rejectReason.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Reject reason is required when rejecting',
+          path: ['rejectReason']
+        })
+      }
+    }
+
+    // Nếu approve = true (APPROVE) thì KHÔNG được có rejectReason
+    if (data.approve === true && data.rejectReason) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Reject reason should not be provided when approving',
+        path: ['rejectReason']
+      })
+    }
+  })
+
+// FIX: Thêm Query Schema để filter venue owner list
+export const VenueOwnerListQuerySchema = z.object({
+  verified: z.enum(['PENDING', 'VERIFIED', 'REJECTED']).optional(),
+  search: z.string().optional() // Search by name, license
+})
 
 export type VenueOwnerType = z.infer<typeof VenueOwnerSchema>
 export type GetVenueOwnersResType = z.infer<typeof GetVenueOwnersResSchema>
@@ -70,3 +92,4 @@ export type GetVenueOwnerDetailResType = z.infer<typeof GetVenueOwnerDetailResSc
 export type CreateVenueOwnerBodyType = z.infer<typeof CreateVenueOwnerBodySchema>
 export type UpdateVenueOwnerBodyType = z.infer<typeof UpdateVenueOwnerBodySchema>
 export type ApproveVenueOwnerBodyType = z.infer<typeof ApproveVenueOwnerBodySchema>
+export type VenueOwnerListQueryType = z.infer<typeof VenueOwnerListQuerySchema>
