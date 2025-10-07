@@ -7,6 +7,7 @@ import {
 import { SetMetadata } from '@nestjs/common'
 
 export const AUTH_TYPE_KEY = 'authType'
+export const SKIP_PERMISSION_CHECK_KEY = 'skipPermissionCheck'
 
 export type AuthTypeDecoratorPayload = {
   authTypes: AuthTypeType[]
@@ -24,3 +25,6 @@ export const Auth = (
 }
 
 export const IsPublic = () => Auth([AuthType.None])
+
+// NEW: Decorator để skip permission check nhưng vẫn require authentication
+export const SkipPermissionCheck = () => SetMetadata(SKIP_PERMISSION_CHECK_KEY, true)

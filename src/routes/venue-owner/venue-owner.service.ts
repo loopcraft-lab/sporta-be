@@ -7,7 +7,8 @@ import { VenueOwnerAlreadyExistsException } from './venue-owner.error'
 import {
   ApproveVenueOwnerBodyType,
   CreateVenueOwnerBodyType,
-  UpdateVenueOwnerBodyType
+  UpdateVenueOwnerBodyType,
+  VenueOwnerListQueryType
 } from './venue-owner.model'
 import { VenueOwnerRepository } from './venue-owner.repository'
 
@@ -15,12 +16,18 @@ import { VenueOwnerRepository } from './venue-owner.repository'
 export class VenueOwnerService {
   constructor(private readonly venueOwnerRepository: VenueOwnerRepository) {}
 
-  list(pagination: PaginationQueryType) {
-    return this.venueOwnerRepository.list(pagination)
+  list(pagination: PaginationQueryType, filter?: VenueOwnerListQueryType) {
+    return this.venueOwnerRepository.list(pagination, filter)
   }
 
   async findById(id: number) {
     const vo = await this.venueOwnerRepository.findById(id)
+    if (!vo) throw NotFoundRecordException
+    return { data: vo, message: VENUE_OWNER_MESSAGE.DETAIL_SUCCESS }
+  }
+
+  async findByUserId(userId: number) {
+    const vo = await this.venueOwnerRepository.findByUserId(userId)
     if (!vo) throw NotFoundRecordException
     return { data: vo, message: VENUE_OWNER_MESSAGE.DETAIL_SUCCESS }
   }
@@ -53,8 +60,26 @@ export class VenueOwnerService {
     updatedById: number
   }) {
     try {
-      const vo = await this.venueOwnerRepository.update({ id, data, updatedById })
-      return { data: vo, message: VENUE_OWNER_MESSAGE.UPDATE_SUCCESS }
+      // FIX: Kiểm tra xem venue owner hiện tại có status là REJECTED không
+      const currentVenueOwner = await this.venueOwnerRepository.findById(id)
+      if (!currentVenueOwner) throw NotFoundRecordException
+
+      // Nếu đang REJECTED và owner update lại thông tin → Tự động chuyển về PENDING
+      const shouldResetToPending = currentVenueOwner.verified === 'REJECTED'
+
+      const vo = await this.venueOwnerRepository.update({
+        id,
+        data,
+        updatedById,
+        resetToPending: shouldResetToPending
+      })
+
+      return {
+        data: vo,
+        message: shouldResetToPending
+          ? 'Đã gửi đăng ký lại! Vui lòng đợi admin xét duyệt.'
+          : VENUE_OWNER_MESSAGE.UPDATE_SUCCESS
+      }
     } catch (error) {
       if (isNotFoundPrismaError(error)) throw NotFoundRecordException
       if (isUniqueConstraintPrismaError(error)) throw VenueOwnerAlreadyExistsException

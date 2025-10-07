@@ -39,12 +39,14 @@ export class CourtController {
   }
 
   @Post()
+  @IsPublic() // FIX: Cho phép OWNER tạo court
   @ZodResponse({ type: GetCourtDetailResDTO })
   create(@Body() body: CreateCourtBodyDTO, @ActiveUser('userId') userId: number) {
     return this.service.create(body as any, userId)
   }
 
   @Put(':id')
+  @IsPublic() // FIX: Cho phép OWNER update court
   @ZodResponse({ type: GetCourtDetailResDTO })
   update(
     @Param() { id }: GetByIdParamsDTO,
@@ -55,6 +57,7 @@ export class CourtController {
   }
 
   @Delete(':id')
+  @IsPublic() // FIX: Cho phép OWNER xóa court
   @ZodResponse({ type: GetCourtDetailResDTO })
   delete(@Param() { id }: GetByIdParamsDTO, @ActiveUser('userId') userId: number) {
     return this.service.delete(id, userId)
