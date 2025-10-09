@@ -11,6 +11,7 @@ export const VenueOwnerSchema = z.object({
   address: z.string().max(1000).nullable().optional(),
   provinceId: z.number().nullable().optional(),
   wardId: z.number().nullable().optional(),
+  images: z.array(z.string()).default([]),
   verified: z.enum(VenueOwnerVerificationType).default('PENDING'),
   rejectReason: z.string().max(1000).nullable().optional(),
   approvedById: z.number().nullable().optional(),
@@ -46,7 +47,8 @@ export const CreateVenueOwnerBodySchema = VenueOwnerSchema.pick({
   bankNumber: true,
   address: true,
   provinceId: true,
-  wardId: true
+  wardId: true,
+  images: true
 }).strict()
 
 export const UpdateVenueOwnerBodySchema = CreateVenueOwnerBodySchema.partial()

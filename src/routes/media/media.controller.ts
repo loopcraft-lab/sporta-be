@@ -1,3 +1,4 @@
+import { SkipPermissionCheck } from '@/shared/decorators/auth.decorator'
 import {
   Controller,
   Delete,
@@ -32,6 +33,7 @@ export class MediaController {
   constructor(private readonly mediaService: MediaService) {}
 
   @Post('upload/:category')
+  @SkipPermissionCheck() // Allow authenticated users to upload media
   @ApiConsumes('multipart/form-data')
   @ApiParam({ name: 'category', enum: MEDIA_CATEGORIES })
   @ApiBody({
@@ -80,6 +82,7 @@ export class MediaController {
   }
 
   @Delete(':category/:filename')
+  @SkipPermissionCheck() // Allow users to delete their uploaded media
   @ApiParam({ name: 'category', enum: MEDIA_CATEGORIES })
   @ApiParam({ name: 'filename', type: 'string' })
   @ApiOkResponse({ type: DeleteMediaResDTO })

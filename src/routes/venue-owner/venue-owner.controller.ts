@@ -45,6 +45,7 @@ export class VenueOwnerController {
   }
 
   @Get('me')
+  @SkipPermissionCheck() // Allow any authenticated user to get their venue owner info
   @ZodResponse({ type: GetVenueOwnerDetailResDTO })
   getMyVenueOwner(@ActiveUser('userId') userId: number) {
     return this.venueOwnerService.findByUserId(userId)
@@ -58,12 +59,14 @@ export class VenueOwnerController {
   }
 
   @Post()
+  @SkipPermissionCheck() // Allow any authenticated user to register as venue owner
   @ZodResponse({ type: GetVenueOwnerDetailResDTO })
   create(@Body() body: CreateVenueOwnerBodyDTO, @ActiveUser('userId') userId: number) {
     return this.venueOwnerService.create({ data: body, createdById: userId })
   }
 
   @Put(':id')
+  @SkipPermissionCheck() // Allow owner to update their own info
   @ZodResponse({ type: GetVenueOwnerDetailResDTO })
   update(
     @Body() body: UpdateVenueOwnerBodyDTO,

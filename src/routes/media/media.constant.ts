@@ -1,4 +1,4 @@
-export const MEDIA_CATEGORIES = ['avatar', 'sport', 'court'] as const
+export const MEDIA_CATEGORIES = ['avatar', 'sport', 'court', 'venue'] as const
 export type MediaCategory = (typeof MEDIA_CATEGORIES)[number]
 
 export const ALLOWED_IMAGE_MIMES = [
