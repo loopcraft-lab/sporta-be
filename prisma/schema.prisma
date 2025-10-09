@@ -168,6 +168,7 @@ model VenueOwner {
   address      String?                    @db.VarChar(1000)
   provinceId   Int?
   wardId       Int?
+  images       Json[]                     @default([])
   verified     VenueOwnerVerificationType @default(PENDING)
   approvedById Int?
   approvedBy   User?                      @relation("VenueOwnerApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
