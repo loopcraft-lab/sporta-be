@@ -1,0 +1,88 @@
+import { ActiveUser } from '@/shared/decorators/active-user.decorator'
+import { IsPublic } from '@/shared/decorators/auth.decorator'
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Query
+} from '@nestjs/common'
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
+import {
+  CheckAvailabilityQueryDTO,
+  CreateBookingBodyDTO,
+  GetBookingsQueryDTO
+} from './booking.dto'
+import { BookingService } from './booking.service'
+
+@ApiTags('Booking')
+@Controller('booking')
+export class BookingController {
+  constructor(private readonly bookingService: BookingService) {}
+
+  /**
+   * Check availability for a court on a specific date
+   */
+  @Get('availability')
+  @IsPublic()
+  async checkAvailability(@Query() query: CheckAvailabilityQueryDTO) {
+    return this.bookingService.checkAvailability(query)
+  }
+
+  /**
+   * Create new booking
+   */
+  @Post()
+  @ApiBearerAuth()
+  async createBooking(
+    @ActiveUser('userId') userId: number,
+    @Body() body: CreateBookingBodyDTO
+  ) {
+    return this.bookingService.createBooking(userId, body)
+  }
+
+  /**
+   * Get my bookings
+   */
+  @Get('my-bookings')
+  @ApiBearerAuth()
+  async getMyBookings(
+    @ActiveUser('userId') userId: number,
+    @Query() query: GetBookingsQueryDTO
+  ) {
+    return this.bookingService.getMyBookings(userId, query)
+  }
+
+  /**
+   * Get booking by ID
+   */
+  @Get(':id')
+  @ApiBearerAuth()
+  async getBookingById(@ActiveUser('userId') userId: number, @Param('id') id: string) {
+    return this.bookingService.getBookingById(userId, Number(id))
+  }
+
+  /**
+   * Cancel booking
+   */
+  @Delete(':id')
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  async cancelBooking(@ActiveUser('userId') userId: number, @Param('id') id: string) {
+    return this.bookingService.cancelBooking(userId, Number(id))
+  }
+
+  /**
+   * PayOS Webhook - Handle payment notifications
+   */
+  @Post('webhook/payos')
+  @IsPublic()
+  @HttpCode(HttpStatus.OK)
+  async handlePaymentWebhook(@Body() webhookData: any) {
+    return this.bookingService.handlePaymentWebhook(webhookData)
+  }
+}

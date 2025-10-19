@@ -45,11 +45,11 @@ const configSchema = z.object({
   GOOGLE_CLIENT_REDIRECT_URI: z.string(),
   //Media
   MAX_FILE_SIZE_BYTES: z.coerce.number().default(10 * 1024 * 1024), //10MB
-  MAX_FILES_UPLOAD: z.coerce.number().default(10)
-  // //PayOS
-  // PAYOS_API_KEY: z.string(),
-  // PAYOS_CLIENT_ID: z.string(),
-  // PAYOS_CHECKSUM_KEY: z.string(),
+  MAX_FILES_UPLOAD: z.coerce.number().default(10),
+  //PayOS
+  PAYMENT_CLIENT_ID: z.string(),
+  PAYMENT_API_KEY: z.string(),
+  PAYMENT_CHECKSUM_KEY: z.string()
 })
 
 const configServer = configSchema.safeParse(process.env)

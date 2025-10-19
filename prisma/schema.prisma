@@ -61,6 +61,7 @@ model User {
   createdVenueImage  VenueImage[] @relation("VenueImageCreatedBy")
   updatedVenueImage  VenueImage[] @relation("VenueImageUpdatedBy")
   deletedVenueImage  VenueImage[] @relation("VenueImageDeletedBy")
+  bookings           Booking[]    @relation("UserBookings")
 
   deletedAt DateTime?
   createdAt DateTime  @default(now())
@@ -201,9 +202,11 @@ model Court {
   surface      String?     @db.VarChar(500)
   indoor       Boolean?    @default(false)
   status       CourtStatus @default(INACTIVE)
+  pricePerHour Float?      @default(0)
 
   amenities CourtAmenity[]
   images    VenueImage[]
+  bookings  Booking[]
 
   createdById Int?
   createdBy   User?     @relation("CourtCreatedBy", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: NoAction)
@@ -270,6 +273,50 @@ model VenueImage {
   updatedAt   DateTime  @updatedAt
 
   @@index([deletedAt])
+}
+
+// Booking System
+model Booking {
+  id            Int           @id @default(autoincrement())
+  userId        Int
+  user          User          @relation("UserBookings", fields: [userId], references: [id], onDelete: Cascade)
+  courtId       Int
+  court         Court         @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  bookingDate   DateTime      @db.Date
+  startTime     String        @db.VarChar(10) // "08:00"
+  endTime       String        @db.VarChar(10) // "10:00"
+  duration      Float         // hours
+  pricePerHour  Float
+  totalPrice    Float
+  status        BookingStatus @default(PENDING)
+  paymentStatus PaymentStatus @default(UNPAID)
+  notes         String?       @db.VarChar(1000)
+  payment       Payment?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([courtId])
+  @@index([bookingDate])
+  @@index([status])
+}
+
+model Payment {
+  id            Int           @id @default(autoincrement())
+  bookingId     Int           @unique
+  booking       Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  amount        Float
+  method        PaymentMethod @default(PAYOS)
+  status        PaymentStatus @default(PENDING)
+  payosOrderId  String?       @unique @db.VarChar(50) // PayOS order ID
+  transactionId String?       @db.VarChar(100) // PayOS transaction ID
+  paymentUrl    String?       @db.VarChar(1000)
+  paidAt        DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([status])
+  @@index([payosOrderId])
 }
 
 //location
@@ -358,4 +405,27 @@ enum SkillLevel {
   INTERMEDIATE
   ADVANCED
   PROFESSIONAL
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PENDING
+  PAID
+  REFUNDED
+  FAILED
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  PAYOS
+  MOMO
+  VNPAY
 }
