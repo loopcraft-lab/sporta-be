@@ -9,6 +9,7 @@ import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
 import { ZodSerializerInterceptor } from 'nestjs-zod'
 import { AmenityModule } from './routes/amenity/amenity.module'
 import { AuthModule } from './routes/auth/auth.module'
+import { BookingModule } from './routes/booking/booking.module'
 import { CourtAmenityModule } from './routes/court-amenity/court-amenity.module'
 import { CourtModule } from './routes/court/court.module'
 import { LocationModule } from './routes/location/location.module'
@@ -50,7 +51,8 @@ import { SharedModule } from './shared/shared.module'
     VenueOwnerModule,
     AmenityModule,
     CourtAmenityModule,
-    CourtModule
+    CourtModule,
+    BookingModule
   ],
   controllers: [],
   providers: [
