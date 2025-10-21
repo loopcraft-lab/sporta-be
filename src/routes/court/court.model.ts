@@ -11,6 +11,17 @@ export const CourtSchema = z.object({
   surface: z.string().max(500).nullable().optional(),
   indoor: z.boolean().nullable().optional(),
   status: z.enum(CourtStatus).default('INACTIVE'),
+  pricePerHour: z.number().nonnegative().nullable().optional(),
+  openingTime: z
+    .string()
+    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)
+    .nullable()
+    .optional(),
+  closingTime: z
+    .string()
+    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)
+    .nullable()
+    .optional(),
   createdById: z.number().nullable().optional(),
   updatedById: z.number().nullable().optional(),
   deletedById: z.number().nullable().optional(),
@@ -43,7 +54,10 @@ export const CreateCourtBodySchema = CourtSchema.pick({
   capacity: true,
   surface: true,
   indoor: true,
-  status: true
+  status: true,
+  pricePerHour: true,
+  openingTime: true,
+  closingTime: true
 }).strict()
 
 export const UpdateCourtBodySchema = CreateCourtBodySchema.partial()
