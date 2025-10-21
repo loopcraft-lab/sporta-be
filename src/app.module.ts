@@ -7,6 +7,7 @@ import { CacheModule } from '@nestjs/cache-manager'
 import { Module } from '@nestjs/common'
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
 import { ZodSerializerInterceptor } from 'nestjs-zod'
+import { AdminModule } from './routes/admin/admin.module'
 import { AmenityModule } from './routes/amenity/amenity.module'
 import { AuthModule } from './routes/auth/auth.module'
 import { BookingModule } from './routes/booking/booking.module'
@@ -52,7 +53,8 @@ import { SharedModule } from './shared/shared.module'
     AmenityModule,
     CourtAmenityModule,
     CourtModule,
-    BookingModule
+    BookingModule,
+    AdminModule
   ],
   controllers: [],
   providers: [
