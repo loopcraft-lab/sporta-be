@@ -30,7 +30,8 @@ export class BookingController {
   @Get('availability')
   @IsPublic()
   async checkAvailability(@Query() query: CheckAvailabilityQueryDTO) {
-    return this.bookingService.checkAvailability(query)
+    const data = await this.bookingService.checkAvailability(query)
+    return { data, message: 'Availability fetched successfully' }
   }
 
   /**
@@ -64,6 +65,15 @@ export class BookingController {
   @ApiBearerAuth()
   async getBookingById(@ActiveUser('userId') userId: number, @Param('id') id: string) {
     return this.bookingService.getBookingById(userId, Number(id))
+  }
+
+  /**
+   * Check payment status and update if needed
+   */
+  @Post(':id/check-payment')
+  @IsPublic()
+  async checkPaymentStatus(@Param('id') id: string) {
+    return this.bookingService.checkPaymentStatus(Number(id))
   }
 
   /**

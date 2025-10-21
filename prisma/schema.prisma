@@ -203,6 +203,8 @@ model Court {
   indoor       Boolean?    @default(false)
   status       CourtStatus @default(INACTIVE)
   pricePerHour Float?      @default(0)
+  openingTime  String?     @db.VarChar(5)
+  closingTime  String?     @db.VarChar(5)
 
   amenities CourtAmenity[]
   images    VenueImage[]

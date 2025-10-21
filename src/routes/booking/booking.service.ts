@@ -51,14 +51,24 @@ export class BookingService {
       }
     })
 
-    // Generate time slots (08:00 - 22:00, 1 hour each)
+    // Generate time slots based on court's operating hours
     const slots: Array<{
       startTime: string
       endTime: string
       available: boolean
       price: number | null
     }> = []
-    for (let hour = 8; hour < 22; hour++) {
+
+    // Use court's operating hours, fallback to default 08:00 - 22:00
+    const openingTime = court.openingTime || '08:00'
+    const closingTime = court.closingTime || '22:00'
+
+    // Parse opening and closing hours
+    const [openHour] = openingTime.split(':').map(Number)
+    const [closeHour] = closingTime.split(':').map(Number)
+
+    // Generate slots from opening to closing time (1 hour each)
+    for (let hour = openHour; hour < closeHour; hour++) {
       const startTime = `${hour.toString().padStart(2, '0')}:00`
       const endTime = `${(hour + 1).toString().padStart(2, '0')}:00`
 
@@ -181,15 +191,16 @@ export class BookingService {
 
     // 6. Create payment link with PayOS
     const orderCode = booking.id // Use booking ID as order code
-    const description = `Thanh toan dat san ${court.name} - ${bookingDate} ${startTime}-${endTime}`
+    // PayOS description max 25 chars
+    const description = `Dat san #${booking.id}`
 
     try {
       const paymentLink = await payOSService.createPaymentLink({
         orderCode,
         amount: Math.round(totalPrice), // PayOS requires integer
         description,
-        returnUrl: `${envConfig.APP_URL}/booking/payment/success`,
-        cancelUrl: `${envConfig.APP_URL}/booking/payment/cancel`,
+        returnUrl: `${envConfig.APP_URL.replace(':4000', ':3000')}/payment/success`,
+        cancelUrl: `${envConfig.APP_URL.replace(':4000', ':3000')}/payment/cancel`,
         buyerName: user.name,
         buyerEmail: user.email,
         buyerPhone: user.phoneNumber
@@ -343,8 +354,94 @@ export class BookingService {
   }
 
   /**
-   * Handle PayOS webhook
+   * Check and update payment status from PayOS
    */
+  async checkPaymentStatus(bookingId: number) {
+    const booking = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { payment: true }
+    })
+
+    if (!booking) {
+      throw new NotFoundException('Booking not found')
+    }
+
+    if (!booking.payment || !booking.payment.payosOrderId) {
+      return booking
+    }
+
+    // Check payment status from PayOS
+    try {
+      const paymentInfo = await payOSService.getPaymentInfo(
+        Number(booking.payment.payosOrderId)
+      )
+
+      console.log('=== PayOS Payment Info ====')
+      console.log('Full response:', JSON.stringify(paymentInfo, null, 2))
+      console.log('Status field:', paymentInfo.status)
+      console.log('==========================')
+
+      // PayOS uses different status values, check all possible fields
+      const isPaid =
+        paymentInfo.status === 'PAID' ||
+        paymentInfo.status === 'paid' ||
+        paymentInfo.status === 'COMPLETED' ||
+        paymentInfo.status === 'completed' ||
+        paymentInfo.status === 'SUCCESS' ||
+        paymentInfo.status === 'success'
+
+      // Update booking and payment based on PayOS status
+      if (isPaid && booking.paymentStatus !== 'PAID') {
+        await this.prisma.$transaction([
+          this.prisma.payment.update({
+            where: { id: booking.payment.id },
+            data: {
+              status: 'PAID',
+              paidAt: new Date()
+            }
+          }),
+          this.prisma.booking.update({
+            where: { id: bookingId },
+            data: {
+              paymentStatus: 'PAID',
+              status: 'CONFIRMED'
+            }
+          })
+        ])
+      } else if (paymentInfo.status === 'CANCELLED' && booking.status !== 'CANCELLED') {
+        await this.prisma.$transaction([
+          this.prisma.payment.update({
+            where: { id: booking.payment.id },
+            data: { status: 'FAILED' }
+          }),
+          this.prisma.booking.update({
+            where: { id: bookingId },
+            data: {
+              paymentStatus: 'FAILED',
+              status: 'CANCELLED'
+            }
+          })
+        ])
+      }
+
+      // Fetch updated booking
+      return await this.prisma.booking.findUnique({
+        where: { id: bookingId },
+        include: {
+          court: {
+            include: {
+              sport: true,
+              venueOwner: true
+            }
+          },
+          payment: true
+        }
+      })
+    } catch (error) {
+      console.error('Failed to check payment status:', error)
+      return booking
+    }
+  }
   async handlePaymentWebhook(webhookData: any) {
     // Verify webhook signature
     const isValid = await payOSService.verifyWebhookData(webhookData)

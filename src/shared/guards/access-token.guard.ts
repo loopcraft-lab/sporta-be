@@ -88,7 +88,7 @@ export class AccessTokenGuard implements CanActivate {
     const roleName: string = decodedAccessToken.roleName
     const path: string = request.route.path
     const method = request.method as keyof typeof HTTPMethod
-    const cacheKey = `role:${roleId}`
+    const cacheKey = `role:${roleId}:v2` // ← Thêm :v2 để force reload
 
     console.log('🔍 Permission check:', {
       roleName,

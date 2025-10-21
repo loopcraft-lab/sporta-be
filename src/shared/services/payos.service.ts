@@ -14,26 +14,18 @@ export class PayOSService {
 
     this.initPromise = (async () => {
       try {
-        const PayOSModule = require('@payos/node')
+        const PayOSModule: any = await import('@payos/node')
+        const PayOS = PayOSModule.PayOS
 
-        // Try different export patterns
-        const PayOSConstructor =
-          PayOSModule.default?.default ||
-          PayOSModule.default ||
-          PayOSModule.PayOS ||
-          PayOSModule
-
-        console.log('PayOS Module type:', typeof PayOSConstructor)
-
-        this.payOS = new PayOSConstructor(
+        this.payOS = new PayOS(
           envConfig.PAYMENT_CLIENT_ID,
           envConfig.PAYMENT_API_KEY,
           envConfig.PAYMENT_CHECKSUM_KEY
         )
 
-        console.log('PayOS initialized successfully')
+        console.log('✅ PayOS initialized successfully')
       } catch (error) {
-        console.error('Failed to initialize PayOS:', error)
+        console.error('❌ Failed to initialize PayOS:', error)
         throw error
       }
     })()
@@ -43,6 +35,7 @@ export class PayOSService {
 
   /**
    * Create payment link for booking
+   * PayOS v2 uses: payOS.paymentRequests.create()
    */
   async createPaymentLink(data: {
     orderCode: number
@@ -57,7 +50,7 @@ export class PayOSService {
     try {
       await this.initialize()
 
-      const paymentLinkData = {
+      const paymentData = {
         orderCode: data.orderCode,
         amount: data.amount,
         description: data.description,
@@ -68,22 +61,37 @@ export class PayOSService {
         buyerPhone: data.buyerPhone
       }
 
-      const paymentLink = await this.payOS.createPaymentLink(paymentLinkData)
-      return paymentLink
+      console.log('📝 Creating payment with PayOS v2:', paymentData)
+
+      // PayOS v2 API: paymentRequests.create()
+      const result = await this.payOS.paymentRequests.create(paymentData)
+
+      console.log('✅ Payment link created:', result)
+
+      // Return in old format for compatibility
+      return {
+        checkoutUrl: result.checkoutUrl,
+        qrCode: result.qrCode,
+        ...result
+      }
     } catch (error) {
-      console.error('PayOS createPaymentLink error:', error)
+      console.error('❌ PayOS payment error:', error)
+      if (error.response) {
+        console.error('Response:', error.response.data)
+      }
       throw error
     }
   }
 
   /**
    * Get payment info
+   * PayOS v2: paymentRequests.get(orderCode)
    */
   async getPaymentInfo(orderCode: number) {
     try {
       await this.initialize()
-      const paymentInfo = await this.payOS.getPaymentLinkInformation(orderCode)
-      return paymentInfo
+      const result = await this.payOS.paymentRequests.get(orderCode)
+      return result
     } catch (error) {
       console.error('PayOS getPaymentInfo error:', error)
       throw error
@@ -92,11 +100,15 @@ export class PayOSService {
 
   /**
    * Cancel payment link
+   * PayOS v2: paymentRequests.cancel(orderCode, reason)
    */
   async cancelPaymentLink(orderCode: number, cancellationReason?: string) {
     try {
       await this.initialize()
-      const result = await this.payOS.cancelPaymentLink(orderCode, cancellationReason)
+      const result = await this.payOS.paymentRequests.cancel(
+        orderCode,
+        cancellationReason
+      )
       return result
     } catch (error) {
       console.error('PayOS cancelPaymentLink error:', error)
@@ -106,11 +118,13 @@ export class PayOSService {
 
   /**
    * Verify webhook signature
+   * PayOS v2: webhooks.verifyWebhookData()
    */
   async verifyWebhookData(webhookData: any): Promise<boolean> {
     try {
       await this.initialize()
-      return this.payOS.verifyPaymentWebhookData(webhookData)
+      const result = await this.payOS.webhooks.verifyWebhookData(webhookData)
+      return result
     } catch (error) {
       console.error('PayOS verifyWebhookData error:', error)
       return false
