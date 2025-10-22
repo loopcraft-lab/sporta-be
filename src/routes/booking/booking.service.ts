@@ -67,10 +67,22 @@ export class BookingService {
     const [openHour] = openingTime.split(':').map(Number)
     const [closeHour] = closingTime.split(':').map(Number)
 
+    // Get current date and time (Vietnam timezone UTC+7)
+    const now = new Date()
+    const selectedDate = new Date(date)
+    const isToday =
+      selectedDate.getFullYear() === now.getFullYear() &&
+      selectedDate.getMonth() === now.getMonth() &&
+      selectedDate.getDate() === now.getDate()
+    const currentHour = now.getHours()
+
     // Generate slots from opening to closing time (1 hour each)
     for (let hour = openHour; hour < closeHour; hour++) {
       const startTime = `${hour.toString().padStart(2, '0')}:00`
       const endTime = `${(hour + 1).toString().padStart(2, '0')}:00`
+
+      // Check if slot is in the past (for today only)
+      const isPastTime = isToday && hour < currentHour
 
       // Check if slot is booked
       const isBooked = bookings.some((booking) => {
@@ -84,7 +96,7 @@ export class BookingService {
       slots.push({
         startTime,
         endTime,
-        available: !isBooked,
+        available: !isBooked && !isPastTime, // Unavailable if booked OR past time
         price: court.pricePerHour
       })
     }
