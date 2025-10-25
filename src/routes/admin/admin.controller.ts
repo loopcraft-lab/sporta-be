@@ -24,6 +24,18 @@ export class AdminController {
     return this.adminService.getDashboardStats(query)
   }
 
+  @Get('dashboard/court-revenue')
+  @IsPublic()
+  async getCourtRevenue(@Query() query: DashboardStatsQueryDTO) {
+    return this.adminService.getCourtRevenue(query)
+  }
+
+  @Get('dashboard/court-utilization')
+  @IsPublic()
+  async getCourtUtilization(@Query() query: DashboardStatsQueryDTO) {
+    return this.adminService.getCourtUtilization(query)
+  }
+
   @Post('grant-all-permissions')
   @IsPublic()
   async grantAllPermissions() {
