@@ -18,7 +18,7 @@ export class TokenService {
       { ...payload, uuid: uuidv4() },
       {
         secret: envConfig.ACCESS_TOKEN_SECRET,
-        expiresIn: envConfig.ACCESS_TOKEN_EXPIRES_IN,
+        expiresIn: envConfig.ACCESS_TOKEN_EXPIRES_IN as any,
         algorithm: 'HS256'
       }
     )
@@ -29,7 +29,7 @@ export class TokenService {
       { ...payload, uuid: uuidv4() },
       {
         secret: envConfig.REFRESH_TOKEN_SECRET,
-        expiresIn: envConfig.REFRESH_TOKEN_EXPIRES_IN,
+        expiresIn: envConfig.REFRESH_TOKEN_EXPIRES_IN as any,
         algorithm: 'HS256'
       }
     )
