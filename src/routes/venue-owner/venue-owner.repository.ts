@@ -202,4 +202,117 @@ export class VenueOwnerRepository {
           })
     ) as any
   }
+
+  // ==================== DASHBOARD ANALYTICS ====================
+
+  /**
+   * Get all bookings for a venue owner's courts
+   */
+  async getBookingsByVenueOwner(venueOwnerId: number, dateFilter: any = {}) {
+    return this.prismaService.booking.findMany({
+      where: {
+        court: {
+          venueOwnerId,
+          deletedAt: null
+        },
+        ...dateFilter
+      },
+      include: {
+        court: {
+          include: {
+            sport: true
+          }
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phoneNumber: true
+          }
+        },
+        payment: true
+      },
+      orderBy: { bookingDate: 'desc' }
+    })
+  }
+
+  /**
+   * Get court count for a venue owner
+   */
+  async getCourtCount(venueOwnerId: number) {
+    return this.prismaService.court.count({
+      where: { venueOwnerId, deletedAt: null }
+    })
+  }
+
+  /**
+   * Find court by ID
+   */
+  async findCourtById(courtId: number) {
+    return this.prismaService.court.findUnique({
+      where: { id: courtId, deletedAt: null },
+      include: {
+        sport: true
+      }
+    })
+  }
+
+  /**
+   * Get bookings for a specific court
+   */
+  async getCourtBookings(courtId: number, dateFilter: any = {}) {
+    return this.prismaService.booking.findMany({
+      where: {
+        courtId,
+        ...dateFilter
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phoneNumber: true
+          }
+        }
+      },
+      orderBy: [{ bookingDate: 'asc' }, { startTime: 'asc' }]
+    })
+  }
+
+  /**
+   * Get bookings with filters and pagination
+   */
+  async getBookingsWithFilters(where: any, skip: number, limit: number) {
+    return this.prismaService.booking.findMany({
+      where,
+      skip,
+      take: limit,
+      include: {
+        court: {
+          include: {
+            sport: true
+          }
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phoneNumber: true
+          }
+        },
+        payment: true
+      },
+      orderBy: { bookingDate: 'desc' }
+    })
+  }
+
+  /**
+   * Count bookings with filters
+   */
+  async countBookings(where: any) {
+    return this.prismaService.booking.count({ where })
+  }
 }

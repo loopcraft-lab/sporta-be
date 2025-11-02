@@ -17,9 +17,12 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { ZodResponse } from 'nestjs-zod'
 import {
   ApproveVenueOwnerBodyDTO,
+  CourtCalendarQueryDTO,
   CreateVenueOwnerBodyDTO,
   GetVenueOwnerDetailResDTO,
   GetVenueOwnersResDTO,
+  OwnerBookingsQueryDTO,
+  OwnerDashboardQueryDTO,
   UpdateVenueOwnerBodyDTO
 } from './venue-owner.dto'
 import { VenueOwnerListQuerySchema } from './venue-owner.model'
@@ -95,5 +98,44 @@ export class VenueOwnerController {
   @ZodResponse({ type: MessageResDTO })
   delete(@Param() params: GetByIdParamsDTO, @ActiveUser('userId') userId: number) {
     return this.venueOwnerService.delete({ id: params.id, deletedById: userId })
+  }
+
+  // ==================== DASHBOARD ANALYTICS ====================
+
+  @Get('my/dashboard')
+  @SkipPermissionCheck()
+  getMyDashboard(
+    @ActiveUser('userId') userId: number,
+    @Query() query: OwnerDashboardQueryDTO
+  ) {
+    return this.venueOwnerService.getMyDashboard(userId, query)
+  }
+
+  @Get('my/courts/:courtId/calendar')
+  @SkipPermissionCheck()
+  getCourtCalendar(
+    @ActiveUser('userId') userId: number,
+    @Param('courtId') courtId: string,
+    @Query() query: CourtCalendarQueryDTO
+  ) {
+    return this.venueOwnerService.getCourtCalendar(userId, parseInt(courtId), query)
+  }
+
+  @Get('my/bookings')
+  @SkipPermissionCheck()
+  getMyBookings(
+    @ActiveUser('userId') userId: number,
+    @Query() query: OwnerBookingsQueryDTO
+  ) {
+    return this.venueOwnerService.getMyBookings(userId, query)
+  }
+
+  @Get('my/analytics')
+  @SkipPermissionCheck()
+  getMyAnalytics(
+    @ActiveUser('userId') userId: number,
+    @Query() query: OwnerDashboardQueryDTO
+  ) {
+    return this.venueOwnerService.getMyAnalytics(userId, query)
   }
 }
