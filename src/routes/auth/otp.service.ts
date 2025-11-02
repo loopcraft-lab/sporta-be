@@ -7,7 +7,7 @@ import ms from 'ms'
 
 @Injectable()
 export class OtpService {
-  private defaultTtlMs = ms(envConfig.OTP_EXPIRES_IN) as number
+  private defaultTtlMs = ms(envConfig.OTP_EXPIRES_IN as string) as number
   private maxAttempts = 5
   private attemptsTtlSec = 10 * 60 // 10 minutes window for attempts
 
