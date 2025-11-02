@@ -3,11 +3,10 @@ import { TypeOfVerificationCodeType } from '@/shared/constants/auth.constant'
 import { HashingService } from '@/shared/services/hashing.service'
 import { RedisService } from '@/shared/services/redis.service'
 import { BadRequestException, Injectable } from '@nestjs/common'
-import ms from 'ms'
 
 @Injectable()
 export class OtpService {
-  private defaultTtlMs = ms(envConfig.OTP_EXPIRES_IN || '5m')
+  private defaultTtlMs = this.parseTimeToMs(envConfig.OTP_EXPIRES_IN)
   private maxAttempts = 5
   private attemptsTtlSec = 10 * 60 // 10 minutes window for attempts
 
@@ -109,6 +108,27 @@ export class OtpService {
       } catch {
         console.log('Failed to unwatch Redis key')
       }
+    }
+  }
+
+  private parseTimeToMs(time: string): number {
+    const match = time.match(/^(\d+)([smhd])$/)
+    if (!match) return 5 * 60 * 1000
+
+    const value = parseInt(match[1])
+    const unit = match[2]
+
+    switch (unit) {
+      case 's':
+        return value * 1000
+      case 'm':
+        return value * 60 * 1000
+      case 'h':
+        return value * 60 * 60 * 1000
+      case 'd':
+        return value * 24 * 60 * 60 * 1000
+      default:
+        return 5 * 60 * 1000
     }
   }
 }
