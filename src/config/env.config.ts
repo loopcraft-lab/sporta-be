@@ -3,13 +3,12 @@ import fs from 'fs'
 import path from 'path'
 import { z } from 'zod'
 
-config({
-  path: '.env'
-})
-
-if (!fs.existsSync(path.resolve('.env'))) {
-  console.error('Not found .env file')
-  process.exit(1)
+if (fs.existsSync(path.resolve('.env'))) {
+  config({
+    path: '.env'
+  })
+} else {
+  console.log('No .env file found, using environment variables from system')
 }
 
 const configSchema = z.object({

@@ -1,0 +1,65 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    env:
+      ENV_FILE: ${{ secrets.ENV_FILE }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create env file
+        if: ${{ env.ENV_FILE != '' }}
+        run: |
+          printf '%s' "$ENV_FILE" > .env
+          chmod 600 .env
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 21
+
+      - name: Setup pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate prisma
+        run: npx prisma generate
+
+      - name: Build application
+        run: pnpm build
+
+  build-and-deploy:
+    name: Build & Deploy
+    needs: build-and-test
+    runs-on: self-hosted
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    env:
+      ENV_FILE: ${{ secrets.ENV_FILE }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create env file
+        if: ${{ env.ENV_FILE != '' }}
+        run: |
+          printf '%s' "$ENV_FILE" > .env
+          chmod 600 .env
+
+      - name: Build and deploy with Docker Compose
+        run: docker compose -f docker-compose.yml up -d --build --remove-orphans
