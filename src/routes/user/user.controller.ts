@@ -6,6 +6,7 @@ import {
 } from '@/routes/user/user.dto'
 import { ActiveRolePermissions } from '@/shared/decorators/active-role-permissions.decorator'
 import { ActiveUser } from '@/shared/decorators/active-user.decorator'
+import { SkipPermissionCheck } from '@/shared/decorators/auth.decorator'
 import { GetByIdParamsDTO, PaginationQueryDTO } from '@/shared/dtos/request.dto'
 import { MessageResDTO } from '@/shared/dtos/response.dto'
 import { GetUserProfileResDTO, UpdateProfileResDTO } from '@/shared/dtos/shared-user.dto'
@@ -19,6 +20,14 @@ import { UserService } from './user.service'
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  // Put specific routes BEFORE parameterized routes
+  @Get('me')
+  @SkipPermissionCheck()
+  @ZodResponse({ type: GetUserProfileResDTO })
+  getProfile(@ActiveUser('userId') userId: number) {
+    return this.userService.findById(userId)
+  }
 
   @Get()
   @ZodResponse({ type: GetUsersResDTO })

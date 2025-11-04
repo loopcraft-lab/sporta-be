@@ -13,7 +13,6 @@ export const RegisterBodySchema = UserSchema.pick({
     code: z.string().length(6),
     isOwner: z.boolean().default(false).optional()
   })
-  .strict()
   .superRefine(({ confirmPassword, password }, ctx) => {
     if (confirmPassword !== password) {
       ctx.addIssue({

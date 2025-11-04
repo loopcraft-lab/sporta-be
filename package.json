@@ -15,6 +15,8 @@
     "permissions:create": "tsx scripts/permissions/create-permissions.ts",
     "permissions:venue-owner": "tsx scripts/permissions/add-venue-owner-permissions.ts",
     "permissions:owner": "tsx scripts/permissions/seed-owner-permissions.ts",
+    "permissions:owner-full": "tsx scripts/permissions/seed-owner-permissions-full.ts",
+    "permissions:client-full": "tsx scripts/permissions/seed-client-permissions-full.ts",
     "permissions:booking-client": "tsx scripts/permissions/add-booking-permissions-client.ts",
     "permissions:quick-fix": "tsx scripts/permissions/quick-fix-client-booking.ts",
     "email:dev": "email dev",
