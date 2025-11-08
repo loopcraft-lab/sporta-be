@@ -34,8 +34,14 @@ jobs:
       - name: Setup pnpm
         run: npm install -g pnpm
 
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --store=$HOME/.pnpm-store
 
       - name: Generate prisma
         run: npx prisma generate
@@ -46,6 +52,7 @@ jobs:
   build-and-deploy:
     name: Build & Deploy
     needs: build-and-test
+    timeout-minutes: 480
     runs-on: self-hosted
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     env:
@@ -61,5 +68,8 @@ jobs:
           printf '%s' "$ENV_FILE" > .env
           chmod 600 .env
 
-      - name: Build and deploy with Docker Compose
-        run: docker compose -f docker-compose.yml up -d --build --remove-orphans
+      - name: Build and deploy with Docker Compose (BuildKit + plain progress)
+        run: |
+          export DOCKER_BUILDKIT=1
+          docker compose -f docker-compose.yml build --progress=plain
+          docker compose -f docker-compose.yml up -d --remove-orphans
