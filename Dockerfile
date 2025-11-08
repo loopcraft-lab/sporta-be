@@ -10,7 +10,10 @@ COPY package*.json ./
 COPY pnpm-lock.yaml ./
 
 # Install ALL dependencies (including devDependencies for build)
-RUN pnpm install
+# Use BuildKit cache mount for the pnpm store to speed up repeated builds.
+# This requires BuildKit to be enabled (DOCKER_BUILDKIT=1).
+RUN --mount=type=cache,id=pnpm-store,target=/root/.pnpm-store \
+	pnpm install --frozen-lockfile --store=/root/.pnpm-store
 
 # Copy prisma schema
 COPY prisma ./prisma
