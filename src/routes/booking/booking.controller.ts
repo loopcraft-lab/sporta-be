@@ -1,5 +1,5 @@
 import { ActiveUser } from '@/shared/decorators/active-user.decorator'
-import { IsPublic } from '@/shared/decorators/auth.decorator'
+import { IsPublic, SkipPermissionCheck } from '@/shared/decorators/auth.decorator'
 import {
   Body,
   Controller,
@@ -36,9 +36,11 @@ export class BookingController {
 
   /**
    * Create new booking
+   * FIX: Allow authenticated users (CLIENT role) to book courts without permission check
    */
   @Post()
   @ApiBearerAuth()
+  @SkipPermissionCheck()
   async createBooking(
     @ActiveUser('userId') userId: number,
     @Body() body: CreateBookingBodyDTO
@@ -48,9 +50,11 @@ export class BookingController {
 
   /**
    * Get my bookings
+   * FIX: Allow authenticated users to view their own bookings
    */
   @Get('my-bookings')
   @ApiBearerAuth()
+  @SkipPermissionCheck()
   async getMyBookings(
     @ActiveUser('userId') userId: number,
     @Query() query: GetBookingsQueryDTO
@@ -60,9 +64,11 @@ export class BookingController {
 
   /**
    * Get booking by ID
+   * FIX: Allow authenticated users to view their own booking details
    */
   @Get(':id')
   @ApiBearerAuth()
+  @SkipPermissionCheck()
   async getBookingById(@ActiveUser('userId') userId: number, @Param('id') id: string) {
     return this.bookingService.getBookingById(userId, Number(id))
   }
@@ -78,9 +84,11 @@ export class BookingController {
 
   /**
    * Cancel booking
+   * FIX: Allow authenticated users to cancel their own bookings
    */
   @Delete(':id')
   @ApiBearerAuth()
+  @SkipPermissionCheck()
   @HttpCode(HttpStatus.OK)
   async cancelBooking(@ActiveUser('userId') userId: number, @Param('id') id: string) {
     return this.bookingService.cancelBooking(userId, Number(id))

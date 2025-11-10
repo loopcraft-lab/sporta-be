@@ -19,6 +19,7 @@
     "permissions:client-full": "tsx scripts/permissions/seed-client-permissions-full.ts",
     "permissions:booking-client": "tsx scripts/permissions/add-booking-permissions-client.ts",
     "permissions:quick-fix": "tsx scripts/permissions/quick-fix-client-booking.ts",
+    "permissions:all": "tsx scripts/permissions/seed-all-permissions.ts",
     "email:dev": "email dev",
     "email:build": "email build",
     "email:export": "email export",

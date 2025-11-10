@@ -3,6 +3,7 @@ import { isNotFoundPrismaError, isUniqueConstraintPrismaError } from '@/shared/h
 import { VENUE_OWNER_MESSAGE } from '@/shared/messages/venue-owner.message'
 import { PaginationQueryType } from '@/shared/models/request.model'
 import { Injectable } from '@nestjs/common'
+import { format } from 'date-fns'
 import { VenueOwnerAlreadyExistsException } from './venue-owner.error'
 import {
   ApproveVenueOwnerBodyType,
@@ -193,6 +194,7 @@ export class VenueOwnerService {
 
   /**
    * Get court calendar with bookings
+   * FIX: Format date properly to avoid timezone issues
    */
   async getCourtCalendar(
     userId: number,
@@ -210,6 +212,8 @@ export class VenueOwnerService {
 
     const { month, startDate, endDate } = query
 
+    console.log('🗓️  Getting calendar for court:', courtId, 'Month:', month)
+
     // Build date filter
     let dateFilter: any = {}
     if (month) {
@@ -223,6 +227,7 @@ export class VenueOwnerService {
           lte: end
         }
       }
+      console.log('📅 Date filter:', { start, end })
     } else if (startDate && endDate) {
       dateFilter = {
         bookingDate: {
@@ -235,10 +240,22 @@ export class VenueOwnerService {
     // Get bookings for this court
     const bookings = await this.venueOwnerRepository.getCourtBookings(courtId, dateFilter)
 
-    // Group bookings by date
+    console.log(`📊 Found ${bookings.length} bookings for court ${courtId}`)
+
+    // Group bookings by date - FIX timezone issue
     const bookingsByDate: Record<string, any[]> = {}
     bookings.forEach((booking) => {
-      const dateKey = booking.bookingDate.toISOString().split('T')[0]
+      // FIX: Use format from date-fns instead of toISOString to avoid timezone issues
+      const dateKey = format(booking.bookingDate, 'yyyy-MM-dd')
+
+      console.log('📌 Booking:', {
+        id: booking.id,
+        bookingDate: booking.bookingDate,
+        dateKey,
+        startTime: booking.startTime,
+        status: booking.status
+      })
+
       if (!bookingsByDate[dateKey]) {
         bookingsByDate[dateKey] = []
       }
@@ -257,6 +274,8 @@ export class VenueOwnerService {
         }
       })
     })
+
+    console.log('📦 Bookings grouped by date:', Object.keys(bookingsByDate))
 
     return {
       data: {
