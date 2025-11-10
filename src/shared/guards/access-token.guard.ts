@@ -51,7 +51,10 @@ export class AccessTokenGuard implements CanActivate {
 
     // Nếu có decorator @SkipPermissionCheck(), chỉ check authentication, bỏ qua permission
     if (skipPermissionCheck) {
-      console.log('⚠️  Skipping permission check for:', request.route.path)
+      console.log('⚠️  Skipping permission check for:', request.route.path, {
+        userId: decodedAccessToken.userId,
+        role: decodedAccessToken.roleName
+      })
       return true
     }
 
@@ -88,7 +91,7 @@ export class AccessTokenGuard implements CanActivate {
     const roleName: string = decodedAccessToken.roleName
     const path: string = request.route.path
     const method = request.method as keyof typeof HTTPMethod
-    const cacheKey = `role:${roleId}:v2` // ← Thêm :v2 để force reload
+    const cacheKey = `role:${roleId}:v2`
 
     console.log('🔍 Permission check:', {
       roleName,
