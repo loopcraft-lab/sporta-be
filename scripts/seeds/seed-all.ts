@@ -9,6 +9,10 @@ async function main() {
     {
       name: 'Provinces & Districts (FULL)',
       script: 'tsx scripts/seeds/seed-provinces-full.ts'
+    },
+    {
+      name: 'Venue Owners & Courts (25 venues)',
+      script: 'tsx scripts/seeds/seed-venue-owners.ts'
     }
   ]
 
@@ -33,12 +37,15 @@ async function main() {
   console.log('   Admin:  admin@gmail.com / 123456')
   console.log('   User:   user@test.com / 123456')
   console.log('   Owner:  owner@test.com / 123456')
+  console.log('   Owner1-25: owner1@sporta.vn ... owner25@sporta.vn / 123456')
   console.log('\n📊 Database seeded with:')
   console.log('   ✅ 4 Roles (Admin, Client, Moderator, Owner)')
-  console.log('   ✅ 3 Users')
+  console.log('   ✅ 28 Users (3 test + 25 venue owners)')
   console.log('   ✅ 10 Sports')
   console.log('   ✅ 63 Provinces')
   console.log('   ✅ 700+ Districts (Quận/Huyện)')
+  console.log('   ✅ 25 Venue Owners (all VERIFIED)')
+  console.log('   ✅ 200+ Courts (8-12 per venue)')
   console.log('')
 }
 
