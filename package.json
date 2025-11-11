@@ -11,6 +11,7 @@
     "seed:provinces": "tsx scripts/seeds/seed-provinces.ts",
     "seed:provinces:full": "tsx scripts/seeds/seed-provinces-full.ts",
     "seed:all": "tsx scripts/seeds/seed-all.ts",
+    "seed:venues": "tsx scripts/seeds/seed-venue-owners.ts",
     "init-seed-data": "tsx scripts/seeds/index.ts",
     "permissions:create": "tsx scripts/permissions/create-permissions.ts",
     "permissions:venue-owner": "tsx scripts/permissions/add-venue-owner-permissions.ts",
