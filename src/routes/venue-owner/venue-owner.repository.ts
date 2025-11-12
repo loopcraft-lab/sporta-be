@@ -32,6 +32,50 @@ export class VenueOwnerRepository {
       where.verified = filter.verified
     }
 
+    // Filter by province
+    if (filter?.provinceId) {
+      where.provinceId = filter.provinceId
+    }
+
+    // Filter by ward
+    if (filter?.wardId) {
+      where.wardId = filter.wardId
+    }
+
+    // Filter by sports (venues that have courts with ANY of the specified sports)
+    if (filter?.sportIds) {
+      const sportIdsArray = filter.sportIds.split(',').map(Number)
+      where.Court = {
+        some: {
+          sportId: { in: sportIdsArray },
+          deletedAt: null
+        }
+      }
+    }
+
+    // Filter by price range (venues that have courts within price range)
+    if (filter?.minPrice !== undefined || filter?.maxPrice !== undefined) {
+      const priceFilter: any = { deletedAt: null }
+
+      if (filter?.minPrice !== undefined && filter?.maxPrice !== undefined) {
+        priceFilter.pricePerHour = {
+          gte: filter.minPrice,
+          lte: filter.maxPrice
+        }
+      } else if (filter?.minPrice !== undefined) {
+        priceFilter.pricePerHour = { gte: filter.minPrice }
+      } else if (filter?.maxPrice !== undefined) {
+        priceFilter.pricePerHour = { lte: filter.maxPrice }
+      }
+
+      // Merge with existing Court filter if sportIds is also present
+      if (where.Court) {
+        where.Court.some = { ...where.Court.some, ...priceFilter }
+      } else {
+        where.Court = { some: priceFilter }
+      }
+    }
+
     // Search by name or license
     if (filter?.search) {
       where.OR = [
@@ -60,6 +104,21 @@ export class VenueOwnerRepository {
               id: true,
               name: true,
               email: true
+            }
+          },
+          Court: {
+            where: { deletedAt: null },
+            select: {
+              id: true,
+              sportId: true,
+              pricePerHour: true,
+              sport: {
+                select: {
+                  id: true,
+                  name: true,
+                  iconUrl: true
+                }
+              }
             }
           }
         },
