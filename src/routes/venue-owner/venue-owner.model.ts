@@ -85,7 +85,12 @@ export const ApproveVenueOwnerBodySchema = z
 // FIX: Thêm Query Schema để filter venue owner list
 export const VenueOwnerListQuerySchema = z.object({
   verified: z.enum(['PENDING', 'VERIFIED', 'REJECTED']).optional(),
-  search: z.string().optional() // Search by name, license
+  search: z.string().optional(), // Search by name, license
+  provinceId: z.coerce.number().positive().optional(), // Filter by province
+  wardId: z.coerce.number().positive().optional(), // Filter by ward
+  sportIds: z.string().optional(), // Comma-separated sport IDs, e.g. "1,2,3"
+  minPrice: z.coerce.number().min(0).optional(), // Minimum price per hour
+  maxPrice: z.coerce.number().min(0).optional() // Maximum price per hour
 })
 
 export type VenueOwnerType = z.infer<typeof VenueOwnerSchema>
