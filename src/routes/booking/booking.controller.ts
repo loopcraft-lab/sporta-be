@@ -63,6 +63,16 @@ export class BookingController {
   }
 
   /**
+   * Check payment status by orderCode (for success page)
+   * IMPORTANT: Must be BEFORE /:id route to avoid routing conflict
+   */
+  @Get('check-payment/:orderCode')
+  @IsPublic()
+  async checkPaymentByOrderCode(@Param('orderCode') orderCode: string) {
+    return this.bookingService.checkPaymentStatusByOrderCode(orderCode)
+  }
+
+  /**
    * Get booking by ID
    * FIX: Allow authenticated users to view their own booking details
    */

@@ -51,10 +51,10 @@ export class AccessTokenGuard implements CanActivate {
 
     // Nếu có decorator @SkipPermissionCheck(), chỉ check authentication, bỏ qua permission
     if (skipPermissionCheck) {
-      console.log('⚠️  Skipping permission check for:', request.route.path, {
-        userId: decodedAccessToken.userId,
-        role: decodedAccessToken.roleName
-      })
+      // console.log('⚠️  Skipping permission check for:', request.route.path, {
+      //   userId: decodedAccessToken.userId,
+      //   role: decodedAccessToken.roleName
+      // })
       return true
     }
 

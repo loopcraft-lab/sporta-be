@@ -22,8 +22,6 @@ export class PayOSService {
           envConfig.PAYMENT_API_KEY,
           envConfig.PAYMENT_CHECKSUM_KEY
         )
-
-        console.log('✅ PayOS initialized successfully')
       } catch (error) {
         console.error('❌ Failed to initialize PayOS:', error)
         throw error
@@ -61,12 +59,8 @@ export class PayOSService {
         buyerPhone: data.buyerPhone
       }
 
-      console.log('📝 Creating payment with PayOS v2:', paymentData)
-
       // PayOS v2 API: paymentRequests.create()
       const result = await this.payOS.paymentRequests.create(paymentData)
-
-      console.log('✅ Payment link created:', result)
 
       // Return in old format for compatibility
       return {

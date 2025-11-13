@@ -202,9 +202,13 @@ export class BookingService {
     })
 
     // 6. Create payment link with PayOS
-    const orderCode = booking.id // Use booking ID as order code
-    // PayOS description max 25 chars
-    const description = `Dat san #${booking.id}`
+    // Generate UNIQUE orderCode using timestamp + bookingId to prevent conflicts after DB reset
+    const orderCode = Number(`${Date.now().toString().slice(-6)}${booking.id}`)
+
+    // Create detailed description (PayOS max 25 chars)
+    const sportName = court.sport?.name || 'San'
+    const courtName = court.name || `San ${booking.courtId}`
+    const description = `${sportName} ${startTime}-${endTime}`.slice(0, 25)
 
     try {
       const paymentLink = await payOSService.createPaymentLink({
@@ -363,6 +367,35 @@ export class BookingService {
     })
 
     return { message: 'Booking cancelled successfully' }
+  }
+
+  /**
+   * Check and update payment status from PayOS by orderCode
+   */
+  async checkPaymentStatusByOrderCode(orderCode: string) {
+    // Find payment by orderCode
+    const payment = await this.prisma.payment.findFirst({
+      where: { payosOrderId: orderCode },
+      include: {
+        booking: {
+          include: {
+            court: {
+              include: {
+                sport: true,
+                venueOwner: true
+              }
+            }
+          }
+        }
+      }
+    })
+
+    if (!payment) {
+      throw new NotFoundException('Payment not found')
+    }
+
+    // Use existing checkPaymentStatus method
+    return this.checkPaymentStatus(payment.bookingId)
   }
 
   /**
