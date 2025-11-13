@@ -23,6 +23,7 @@ import {
   GetVenueOwnersResDTO,
   OwnerBookingsQueryDTO,
   OwnerDashboardQueryDTO,
+  RevenueQueryDTO,
   UpdateVenueOwnerBodyDTO
 } from './venue-owner.dto'
 import { VenueOwnerListQuerySchema } from './venue-owner.model'
@@ -137,5 +138,55 @@ export class VenueOwnerController {
     @Query() query: OwnerDashboardQueryDTO
   ) {
     return this.venueOwnerService.getMyAnalytics(userId, query)
+  }
+
+  // ==================== REVENUE TRACKING ====================
+
+  /**
+   * Get revenue overview with comparison to previous period
+   */
+  @Get('my/revenue/overview')
+  @SkipPermissionCheck()
+  getRevenueOverview(
+    @ActiveUser('userId') userId: number,
+    @Query() query: RevenueQueryDTO
+  ) {
+    return this.venueOwnerService.getRevenueOverview(userId, query)
+  }
+
+  /**
+   * Get revenue time series (for charts)
+   */
+  @Get('my/revenue/time-series')
+  @SkipPermissionCheck()
+  getRevenueTimeSeries(
+    @ActiveUser('userId') userId: number,
+    @Query() query: RevenueQueryDTO
+  ) {
+    return this.venueOwnerService.getRevenueTimeSeries(userId, query)
+  }
+
+  /**
+   * Get revenue breakdown by court
+   */
+  @Get('my/revenue/by-court')
+  @SkipPermissionCheck()
+  getRevenueByCourt(
+    @ActiveUser('userId') userId: number,
+    @Query() query: RevenueQueryDTO
+  ) {
+    return this.venueOwnerService.getRevenueByCourt(userId, query)
+  }
+
+  /**
+   * Get revenue breakdown by sport
+   */
+  @Get('my/revenue/by-sport')
+  @SkipPermissionCheck()
+  getRevenueBySport(
+    @ActiveUser('userId') userId: number,
+    @Query() query: RevenueQueryDTO
+  ) {
+    return this.venueOwnerService.getRevenueBySport(userId, query)
   }
 }

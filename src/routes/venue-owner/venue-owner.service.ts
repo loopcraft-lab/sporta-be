@@ -2,8 +2,17 @@ import { NotFoundRecordException } from '@/shared/error'
 import { isNotFoundPrismaError, isUniqueConstraintPrismaError } from '@/shared/helper'
 import { VENUE_OWNER_MESSAGE } from '@/shared/messages/venue-owner.message'
 import { PaginationQueryType } from '@/shared/models/request.model'
+import { PrismaService } from '@/shared/services/prisma.service'
 import { Injectable } from '@nestjs/common'
 import { format } from 'date-fns'
+import {
+  calculateDateRange,
+  calculateGrowth,
+  calculatePreviousPeriod,
+  formatDateForGrouping,
+  generateDateLabels,
+  getRevenueSummary
+} from './revenue.helper'
 import { VenueOwnerAlreadyExistsException } from './venue-owner.error'
 import {
   ApproveVenueOwnerBodyType,
@@ -15,7 +24,10 @@ import { VenueOwnerRepository } from './venue-owner.repository'
 
 @Injectable()
 export class VenueOwnerService {
-  constructor(private readonly venueOwnerRepository: VenueOwnerRepository) {}
+  constructor(
+    private readonly venueOwnerRepository: VenueOwnerRepository,
+    private readonly prisma: PrismaService
+  ) {}
 
   list(pagination: PaginationQueryType, filter?: VenueOwnerListQueryType) {
     return this.venueOwnerRepository.list(pagination, filter)
@@ -149,19 +161,20 @@ export class VenueOwnerService {
       dateFilter
     )
 
-    // Calculate stats
+    // Calculate stats - FIX: Exclude cancelled bookings from revenue
     const totalBookings = bookings.length
     const confirmedBookings = bookings.filter((b) => b.status === 'CONFIRMED').length
     const pendingBookings = bookings.filter((b) => b.status === 'PENDING').length
     const cancelledBookings = bookings.filter((b) => b.status === 'CANCELLED').length
     const completedBookings = bookings.filter((b) => b.status === 'COMPLETED').length
 
+    // FIX: Only count revenue from non-cancelled bookings
     const totalRevenue = bookings
-      .filter((b) => b.paymentStatus === 'PAID')
+      .filter((b) => b.paymentStatus === 'PAID' && b.status !== 'CANCELLED')
       .reduce((sum, b) => sum + b.totalPrice, 0)
 
     const pendingRevenue = bookings
-      .filter((b) => b.paymentStatus === 'PENDING')
+      .filter((b) => b.paymentStatus === 'PENDING' && b.status !== 'CANCELLED')
       .reduce((sum, b) => sum + b.totalPrice, 0)
 
     // Get court count
@@ -394,11 +407,14 @@ export class VenueOwnerService {
       dateFilter
     )
 
-    // Revenue by sport
+    // Revenue by sport - FIX: Exclude cancelled bookings
     const revenueBySport: Record<string, number> = {}
     const bookingsBySport: Record<string, number> = {}
 
     bookings.forEach((booking) => {
+      // Skip cancelled bookings
+      if (booking.status === 'CANCELLED') return
+
       const sportName = booking.court.sport?.name || 'Unknown'
       if (booking.paymentStatus === 'PAID') {
         revenueBySport[sportName] = (revenueBySport[sportName] || 0) + booking.totalPrice
@@ -406,11 +422,14 @@ export class VenueOwnerService {
       bookingsBySport[sportName] = (bookingsBySport[sportName] || 0) + 1
     })
 
-    // Revenue by court
+    // Revenue by court - FIX: Exclude cancelled bookings
     const revenueByCourt: Record<string, number> = {}
     const bookingsByCourt: Record<string, number> = {}
 
     bookings.forEach((booking) => {
+      // Skip cancelled bookings
+      if (booking.status === 'CANCELLED') return
+
       const courtName = booking.court.name || `Court ${booking.courtId}`
       if (booking.paymentStatus === 'PAID') {
         revenueByCourt[courtName] = (revenueByCourt[courtName] || 0) + booking.totalPrice
@@ -426,6 +445,338 @@ export class VenueOwnerService {
         bookingsByCourt
       },
       message: 'Analytics data fetched successfully'
+    }
+  }
+
+  // ==================== REVENUE TRACKING ====================
+
+  /**
+   * Get revenue overview with comparison to previous period
+   */
+  async getRevenueOverview(
+    userId: number,
+    query: {
+      startDate?: string
+      endDate?: string
+      groupBy?: 'day' | 'week' | 'month' | 'year'
+    }
+  ) {
+    // Get venue owner
+    const venueOwner = await this.venueOwnerRepository.findByUserId(userId)
+    if (!venueOwner || !venueOwner.id) throw NotFoundRecordException
+
+    // Calculate date range
+    const { startDate, endDate } = calculateDateRange(
+      query.startDate,
+      query.endDate,
+      query.groupBy || 'day'
+    )
+
+    // Get current period data
+    const currentPeriod = await getRevenueSummary(
+      this.prisma,
+      venueOwner.id,
+      startDate,
+      endDate
+    )
+
+    // Get previous period data for comparison
+    const previousPeriodRange = calculatePreviousPeriod(startDate, endDate)
+    const previousPeriod = await getRevenueSummary(
+      this.prisma,
+      venueOwner.id,
+      previousPeriodRange.startDate,
+      previousPeriodRange.endDate
+    )
+
+    // Calculate growth
+    const revenueGrowth = calculateGrowth(
+      currentPeriod.paidRevenue,
+      previousPeriod.paidRevenue
+    )
+    const bookingGrowth = calculateGrowth(
+      currentPeriod.paidBookings,
+      previousPeriod.paidBookings
+    )
+
+    return {
+      data: {
+        currentPeriod,
+        previousPeriod,
+        growth: {
+          revenueGrowth,
+          bookingGrowth,
+          revenueChange: currentPeriod.paidRevenue - previousPeriod.paidRevenue,
+          bookingChange: currentPeriod.paidBookings - previousPeriod.paidBookings
+        }
+      },
+      message: 'Revenue overview fetched successfully'
+    }
+  }
+
+  /**
+   * Get revenue time series for charts
+   */
+  async getRevenueTimeSeries(
+    userId: number,
+    query: {
+      startDate?: string
+      endDate?: string
+      groupBy?: 'day' | 'week' | 'month' | 'year'
+    }
+  ) {
+    const venueOwner = await this.venueOwnerRepository.findByUserId(userId)
+    if (!venueOwner || !venueOwner.id) throw NotFoundRecordException
+
+    const groupBy = query.groupBy || 'day'
+    const { startDate, endDate } = calculateDateRange(
+      query.startDate,
+      query.endDate,
+      groupBy
+    )
+
+    // Get all bookings in period - FIX: Include status to filter cancelled
+    const bookings = await this.prisma.booking.findMany({
+      where: {
+        court: { venueOwnerId: venueOwner.id },
+        bookingDate: { gte: startDate, lte: endDate }
+      },
+      select: {
+        bookingDate: true,
+        totalPrice: true,
+        paymentStatus: true,
+        status: true
+      }
+    })
+
+    // Generate all date labels
+    const dateLabels = generateDateLabels(startDate, endDate, groupBy)
+
+    // Group bookings by date
+    const dataMap = new Map<string, { revenue: number; bookings: number }>()
+
+    // Initialize all dates with 0
+    dateLabels.forEach(({ date }) => {
+      dataMap.set(date, { revenue: 0, bookings: 0 })
+    })
+
+    // Fill in actual data - FIX: Exclude cancelled bookings
+    bookings.forEach((booking) => {
+      // Skip cancelled bookings
+      if (booking.status === 'CANCELLED') return
+
+      const dateKey = formatDateForGrouping(booking.bookingDate, groupBy)
+      const current = dataMap.get(dateKey) || { revenue: 0, bookings: 0 }
+
+      if (booking.paymentStatus === 'PAID') {
+        current.revenue += booking.totalPrice
+      }
+      current.bookings += 1
+
+      dataMap.set(dateKey, current)
+    })
+
+    // Convert to array with labels
+    const data = dateLabels.map(({ date, label }) => {
+      const stats = dataMap.get(date) || { revenue: 0, bookings: 0 }
+      return {
+        date,
+        label,
+        revenue: Math.round(stats.revenue),
+        bookings: stats.bookings
+      }
+    })
+
+    return {
+      data,
+      message: 'Revenue time series fetched successfully'
+    }
+  }
+
+  /**
+   * Get revenue breakdown by court
+   */
+  async getRevenueByCourt(
+    userId: number,
+    query: { startDate?: string; endDate?: string }
+  ) {
+    const venueOwner = await this.venueOwnerRepository.findByUserId(userId)
+    if (!venueOwner || !venueOwner.id) throw NotFoundRecordException
+
+    const { startDate, endDate } = calculateDateRange(
+      query.startDate,
+      query.endDate,
+      'day'
+    )
+
+    // Get bookings grouped by court
+    const bookings = await this.prisma.booking.findMany({
+      where: {
+        court: { venueOwnerId: venueOwner.id },
+        bookingDate: { gte: startDate, lte: endDate }
+      },
+      include: {
+        court: {
+          include: {
+            sport: true
+          }
+        }
+      }
+    })
+
+    // Group by court
+    const courtMap = new Map<
+      number,
+      {
+        courtId: number
+        courtName: string | null
+        sportName: string
+        totalRevenue: number
+        paidRevenue: number
+        pendingRevenue: number
+        totalBookings: number
+        paidBookings: number
+      }
+    >()
+
+    // FIX: Exclude cancelled bookings from revenue
+    bookings.forEach((booking) => {
+      // Skip cancelled bookings
+      if (booking.status === 'CANCELLED') return
+
+      const courtId = booking.courtId
+      const current = courtMap.get(courtId) || {
+        courtId,
+        courtName: booking.court.name,
+        sportName: booking.court.sport?.name || 'Unknown',
+        totalRevenue: 0,
+        paidRevenue: 0,
+        pendingRevenue: 0,
+        totalBookings: 0,
+        paidBookings: 0
+      }
+
+      current.totalBookings += 1
+
+      if (booking.paymentStatus === 'PAID') {
+        current.paidRevenue += booking.totalPrice
+        current.paidBookings += 1
+      } else if (booking.paymentStatus === 'PENDING') {
+        current.pendingRevenue += booking.totalPrice
+      }
+
+      current.totalRevenue = current.paidRevenue + current.pendingRevenue
+
+      courtMap.set(courtId, current)
+    })
+
+    // Convert to array and add avg booking value
+    const data = Array.from(courtMap.values())
+      .map((court) => ({
+        ...court,
+        avgBookingValue:
+          court.paidBookings > 0 ? Math.round(court.paidRevenue / court.paidBookings) : 0
+      }))
+      .sort((a, b) => b.paidRevenue - a.paidRevenue) // Sort by revenue desc
+
+    return {
+      data,
+      message: 'Revenue by court fetched successfully'
+    }
+  }
+
+  /**
+   * Get revenue breakdown by sport
+   */
+  async getRevenueBySport(
+    userId: number,
+    query: { startDate?: string; endDate?: string }
+  ) {
+    const venueOwner = await this.venueOwnerRepository.findByUserId(userId)
+    if (!venueOwner || !venueOwner.id) throw NotFoundRecordException
+
+    const { startDate, endDate } = calculateDateRange(
+      query.startDate,
+      query.endDate,
+      'day'
+    )
+
+    // Get bookings grouped by sport
+    const bookings = await this.prisma.booking.findMany({
+      where: {
+        court: { venueOwnerId: venueOwner.id },
+        bookingDate: { gte: startDate, lte: endDate }
+      },
+      include: {
+        court: {
+          include: {
+            sport: true
+          }
+        }
+      }
+    })
+
+    // Group by sport
+    const sportMap = new Map<
+      number,
+      {
+        sportId: number
+        sportName: string
+        totalRevenue: number
+        paidRevenue: number
+        totalBookings: number
+        paidBookings: number
+        courtIds: Set<number>
+      }
+    >()
+
+    // FIX: Exclude cancelled bookings from revenue
+    bookings.forEach((booking) => {
+      // Skip cancelled bookings
+      if (booking.status === 'CANCELLED') return
+
+      const sportId = booking.court.sport?.id || 0
+      const sportName = booking.court.sport?.name || 'Unknown'
+
+      const current = sportMap.get(sportId) || {
+        sportId,
+        sportName,
+        totalRevenue: 0,
+        paidRevenue: 0,
+        totalBookings: 0,
+        paidBookings: 0,
+        courtIds: new Set<number>()
+      }
+
+      current.totalBookings += 1
+      current.courtIds.add(booking.courtId)
+
+      if (booking.paymentStatus === 'PAID') {
+        current.paidRevenue += booking.totalPrice
+        current.paidBookings += 1
+      }
+
+      current.totalRevenue += booking.totalPrice
+
+      sportMap.set(sportId, current)
+    })
+
+    // Convert to array
+    const data = Array.from(sportMap.values())
+      .map((sport) => ({
+        sportId: sport.sportId,
+        sportName: sport.sportName,
+        totalRevenue: Math.round(sport.totalRevenue),
+        paidRevenue: Math.round(sport.paidRevenue),
+        totalBookings: sport.totalBookings,
+        paidBookings: sport.paidBookings,
+        courtsCount: sport.courtIds.size
+      }))
+      .sort((a, b) => b.paidRevenue - a.paidRevenue) // Sort by revenue desc
+
+    return {
+      data,
+      message: 'Revenue by sport fetched successfully'
     }
   }
 }
