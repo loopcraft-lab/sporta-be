@@ -27,6 +27,23 @@ export class OwnerDashboardQueryDTO {
   endDate?: string
 }
 
+// ==================== REVENUE TRACKING DTOs ====================
+
+export class RevenueQueryDTO {
+  @ApiPropertyOptional({ description: 'Start date (YYYY-MM-DD)' })
+  startDate?: string
+
+  @ApiPropertyOptional({ description: 'End date (YYYY-MM-DD)' })
+  endDate?: string
+
+  @ApiPropertyOptional({
+    description: 'Group by period',
+    enum: ['day', 'week', 'month', 'year'],
+    default: 'day'
+  })
+  groupBy?: 'day' | 'week' | 'month' | 'year'
+}
+
 export class CourtCalendarQueryDTO {
   @ApiPropertyOptional({ description: 'Month in YYYY-MM format', example: '2025-10' })
   month?: string
