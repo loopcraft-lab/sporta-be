@@ -73,3 +73,6 @@ jobs:
           export DOCKER_BUILDKIT=1
           docker compose -f docker-compose.yml build --progress=plain
           docker compose -f docker-compose.yml up -d --remove-orphans
+
+      - name: Clean up old Docker images
+        run: docker image prune -af
