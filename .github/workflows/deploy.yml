@@ -104,31 +104,8 @@ jobs:
           printf '%s' "$ENV_FILE" > .env
           chmod 600 .env
 
-      - name: Log in to Docker Hub
-        env:
-          DOCKER_CLIENT_TIMEOUT: 120
-          COMPOSE_HTTP_TIMEOUT: 120
-        run: |
-          docker logout || true
-          for i in 1 2 3 4 5 6; do
-            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin && echo "docker login succeeded" && break
-            echo "docker login failed; retrying (attempt: $i)"
-            sleep $((i*i))
-          done
-
-      - name: Pull latest image
-        env:
-          DOCKER_CLIENT_TIMEOUT: 120
-          COMPOSE_HTTP_TIMEOUT: 120
-        run: |
-          for i in 1 2 3 4 5 6; do
-            docker pull ${{ secrets.DOCKER_USERNAME }}/sporta-be:latest && echo "pulled image" && break
-            echo "docker pull failed; retrying (attempt: $i)"
-            sleep $((i*i))
-          done
-
-      - name: Tag image for docker-compose
-        run: docker tag ${{ secrets.DOCKER_USERNAME }}/sporta-be:latest sporta-be-app
+      - name: Build image on VPS
+        run: docker build -t sporta-be-app .
 
       - name: Deploy with Docker Compose
         env:
