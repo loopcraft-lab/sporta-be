@@ -18,8 +18,8 @@ RUN --mount=type=cache,id=pnpm-store,target=/root/.pnpm-store \
 # Copy prisma schema
 COPY prisma ./prisma
 
-# Generate Prisma client
-RUN npx prisma generate
+# Generate Prisma client (use pnpm to respect package.json version)
+RUN pnpm prisma generate
 
 # Copy source code
 COPY emails ./emails
@@ -50,7 +50,7 @@ RUN --mount=type=cache,id=pnpm-store,target=/root/.pnpm-store \
 
 # Copy prisma schema and generate client
 COPY prisma ./prisma
-RUN npx prisma generate
+RUN pnpm prisma generate
 
 # Copy built application from builder
 COPY --from=builder /app/dist ./dist
