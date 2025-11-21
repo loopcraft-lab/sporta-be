@@ -11,8 +11,9 @@ COPY package*.json ./
 COPY pnpm-lock.yaml ./
 
 # Install ALL dependencies (including devDependencies for build)
+# Skip prepare script (husky) in Docker
 RUN --mount=type=cache,id=pnpm-store,target=/root/.pnpm-store \
-	pnpm install --frozen-lockfile --store=/root/.pnpm-store
+	pnpm install --frozen-lockfile --ignore-scripts --store=/root/.pnpm-store
 
 # Copy prisma schema
 COPY prisma ./prisma
@@ -43,8 +44,9 @@ COPY package*.json ./
 COPY pnpm-lock.yaml ./
 
 # Install only production dependencies
+# Skip prepare script (husky) in Docker
 RUN --mount=type=cache,id=pnpm-store,target=/root/.pnpm-store \
-	pnpm install --frozen-lockfile --prod --store=/root/.pnpm-store
+	pnpm install --frozen-lockfile --prod --ignore-scripts --store=/root/.pnpm-store
 
 # Copy prisma schema and generate client
 COPY prisma ./prisma
