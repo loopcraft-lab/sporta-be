@@ -1,5 +1,5 @@
 # Build stage
-FROM node:21-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -32,7 +32,7 @@ COPY nest-cli.json ./
 RUN NODE_OPTIONS="--max-old-space-size=512" pnpm build
 
 # Production stage
-FROM node:21-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
