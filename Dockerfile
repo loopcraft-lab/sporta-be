@@ -47,10 +47,10 @@ COPY pnpm-lock.yaml ./
 # Copy prisma schema first (needed for postinstall)
 COPY prisma ./prisma
 
-# Install only production dependencies
+# Install dependencies including Prisma CLI (devDependency needed for generation)
 # Skip prepare script (husky) in Docker
 RUN --mount=type=cache,id=pnpm-store,target=/root/.pnpm-store \
-	pnpm install --frozen-lockfile --prod --ignore-scripts --store=/root/.pnpm-store
+     pnpm install --frozen-lockfile --ignore-scripts --store=/root/.pnpm-store
 
 # Generate Prisma client in production stage
 RUN pnpm prisma generate
