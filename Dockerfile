@@ -48,9 +48,12 @@ COPY pnpm-lock.yaml ./
 RUN --mount=type=cache,id=pnpm-store,target=/root/.pnpm-store \
 	pnpm install --frozen-lockfile --prod --ignore-scripts --store=/root/.pnpm-store
 
-# Copy prisma schema and generate client
+# Copy prisma schema
 COPY prisma ./prisma
-RUN pnpm prisma generate
+
+# Copy Prisma client generated in builder stage
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
 # Copy built application from builder
 COPY --from=builder /app/dist ./dist
