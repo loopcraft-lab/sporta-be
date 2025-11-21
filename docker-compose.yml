@@ -61,7 +61,8 @@ services:
       - sporta-app
     volumes:
       - ./uploads:/app/uploads
-    command: sh -c "npx prisma migrate deploy && pnpm start:prod"
+    # Skip migration if DB already has schema (production mode)
+    command: sh -c "pnpm start:prod"
 
 networks:
   sporta-app:
