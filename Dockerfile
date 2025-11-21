@@ -28,8 +28,9 @@ COPY tsconfig.json ./
 COPY tsconfig.build.json ./
 COPY nest-cli.json ./
 
-# Build the application with limited memory to prevent OOM
-RUN NODE_OPTIONS="--max-old-space-size=512" pnpm build
+# Build the application with increased memory allocation
+# GitHub Actions runners have 16GB RAM, so we can use more memory
+RUN NODE_OPTIONS="--max-old-space-size=2048" pnpm build
 
 # Production stage
 FROM node:22-alpine
