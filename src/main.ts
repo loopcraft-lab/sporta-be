@@ -18,22 +18,23 @@ async function bootstrap() {
   })
   console.info('CORS Origin:', corsOrigin)
 
+  //serve static uploads FIRST - must be before setGlobalPrefix
+  app.useStaticAssets(path.resolve('uploads'), {
+    prefix: '/uploads/'
+  })
+
   // Use global prefix if you don't have subdomain
   app.setGlobalPrefix(envConfig.API_PREFIX, {
     exclude: [
       { method: RequestMethod.GET, path: '/' },
-      { method: RequestMethod.GET, path: 'health' }
+      { method: RequestMethod.GET, path: 'health' },
+      { method: RequestMethod.GET, path: 'uploads/*' } // Exclude static files from prefix
     ]
   })
 
   //version
   app.enableVersioning({
     type: VersioningType.URI
-  })
-
-  //serve static uploads
-  app.useStaticAssets(path.resolve('uploads'), {
-    prefix: '/uploads/'
   })
 
   //swagger

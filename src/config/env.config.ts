@@ -18,6 +18,7 @@ const configSchema = z.object({
   APP_PORT: z.coerce.number(),
   API_PREFIX: z.string(),
   APP_CORS_ORIGIN: z.string(),
+  FRONTEND_URL: z.string().optional().default('http://localhost:3000'),
   //Database
   DATABASE_URL: z.string(),
   //jwt

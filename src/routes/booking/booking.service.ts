@@ -215,8 +215,8 @@ export class BookingService {
         orderCode,
         amount: Math.round(totalPrice), // PayOS requires integer
         description,
-        returnUrl: `${envConfig.APP_URL.replace(':4000', ':3000')}/payment/success`,
-        cancelUrl: `${envConfig.APP_URL.replace(':4000', ':3000')}/payment/cancel`,
+        returnUrl: `${envConfig.FRONTEND_URL}/payment/success`,
+        cancelUrl: `${envConfig.FRONTEND_URL}/payment/cancel`,
         buyerName: user.name,
         buyerEmail: user.email,
         buyerPhone: user.phoneNumber
