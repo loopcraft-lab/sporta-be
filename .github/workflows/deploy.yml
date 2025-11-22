@@ -104,14 +104,14 @@ jobs:
           printf '%s' "$ENV_FILE" > .env
           chmod 600 .env
 
-      - name: Build image on VPS
-        run: docker build -t sporta-be-app .
+      - name: Pull latest image
+        run: docker pull ${{ secrets.DOCKER_USERNAME }}/sporta-be:latest
+
+      - name: Tag image for docker-compose
+        run: docker tag ${{ secrets.DOCKER_USERNAME }}/sporta-be:latest sporta-be-app
 
       - name: Deploy with Docker Compose
-        env:
-          COMPOSE_HTTP_TIMEOUT: 120
-        run: |
-          docker compose -f docker-compose.yml up -d --no-build
+        run: docker compose -f docker-compose.yml up -d --no-build
 
       - name: Clean up old Docker images
         run: docker image prune -af
