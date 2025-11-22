@@ -69,7 +69,8 @@ export class BookingController {
   @Get('check-payment/:orderCode')
   @IsPublic()
   async checkPaymentByOrderCode(@Param('orderCode') orderCode: string) {
-    return this.bookingService.checkPaymentStatusByOrderCode(orderCode)
+    const data = await this.bookingService.checkPaymentStatusByOrderCode(orderCode)
+    return { data, message: 'Payment status checked successfully' }
   }
 
   /**
